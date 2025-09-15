@@ -1,0 +1,14 @@
+# Cabal build artifacts
+dist-newstyle/
+cabal.project.local
+*.hi
+*.o
+
+# OS / editor
+.DS_Store
+*.swp
+*.swo
+*.backup
+
+# Nix
+result
