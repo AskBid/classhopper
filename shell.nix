@@ -8,7 +8,15 @@ pkgs.mkShell {
     pkgs.haskellPackages.hlint
     pkgs.SDL2
     pkgs.pkg-config
-    pkgs.libGL
-    pkgs.libGLU
+
+    # OpenGL bits
+    pkgs.libGL    # development files
+    pkgs.libGLU   # GLU extension
+    pkgs.mesa     # runtime libraries (libGL.so.1)
   ];
+  
+  shellHook = ''
+    export LD_LIBRARY_PATH=${pkgs.libGLU}/lib:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=${pkgs.libglvnd}/lib:$LD_LIBRARY_PATH
+  '';
 }

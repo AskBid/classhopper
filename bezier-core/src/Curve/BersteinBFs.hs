@@ -1,7 +1,7 @@
 -- | Bernstein Basis Functions
 module Curve.BersteinBFs where
 
-data BernsteinBFs = BernsteinBFs [Float -> Float]
+type BernsteinBFs = [Float -> Float]
 -- ^ Using Float bc I have speed and efficiency in mind rather
 -- then precision, but may need to switch to Double in the future
 -- Float 32b, Double 64b
@@ -9,7 +9,7 @@ data BernsteinBFs = BernsteinBFs [Float -> Float]
 -- | Basis functions for a degree 1 curve (Linear)
 deg1_BBFs :: BernsteinBFs
 deg1_BBFs = 
-  [ \t -> 1-t
+  [ (1-)
   , id
   ]
 
@@ -17,8 +17,8 @@ deg1_BBFs =
 deg2_BBFs :: BernsteinBFs
 deg2_BBFs = 
   [ \t -> (t-1)^2
-  , \t -> 2*t*(1−t)
-  , \t -> t^2
+  , \t -> 2*t*(1-t)
+  , (^2)
   ]
 
 -- | thought to be the Control Point coordinates
