@@ -1,6 +1,6 @@
 module Main where
 
-import Render (launchWindow)
+import Interface (launchWindow)
 
 main :: IO ()
 main = launchWindow

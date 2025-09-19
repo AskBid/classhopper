@@ -1,11 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Render where
+module Interface where
 
 import SDL
 import Control.Monad (unless)
 import qualified Graphics.Rendering.OpenGL as GL
 import SDL.Video.OpenGL
+import qualified Curve.BersteinBFs as SPline
+-- import Graphics.Rendering.OpenGL.GL.BeginEnd
+-- import Graphics.Rendering.OpenGL (PolygonMode(Line))
 
 launchWindow :: IO ()
 launchWindow = do 
@@ -29,10 +32,19 @@ appLoop window = do
   let quitRequested = any (isQuit . eventPayload) events
 
   -- Rendering step
-  GL.clearColor GL.$= GL.Color4 0.43 0.43 0.47 1  -- Black background
+  GL.clearColor GL.$= GL.Color4 0.43 0.43 0.47 1
   GL.clear [GL.ColorBuffer]
 
-  -- TODO: your OpenGL drawing code goes here
+  -- TODO: OpenGL drawing code goes here
+  GL.renderPrimitive GL.Lines $
+    pathLines $ SPline.evaluateCrv [(-0.5, -0.5), (0.0, 0.5), (0.5, 0.0)] 4
+  GL.renderPrimitive GL.Lines $
+    pathLines $ SPline.evaluateCrv [(-0.5, -0.5), (0.0, 0.5), (0.5, 0.0)] 14
+  -- GL.renderPrimitive GL.Lines $ do 
+  --   GL.vertex $ GL.Vertex2 (-0.5 :: GL.GLfloat) (-0.5 :: GL.GLfloat)
+  --   GL.vertex $ GL.Vertex2 (0.0 :: GL.GLfloat) (0.6 :: GL.GLfloat)
+  --   GL.vertex $ GL.Vertex2 (0.1 :: GL.GLfloat) (0.7 :: GL.GLfloat)
+  --   GL.vertex $ GL.Vertex2 (0.5 :: GL.GLfloat) (0.5 :: GL.GLfloat)
 
   glSwapWindow window 
   -- OpenGL don’t draw directly to the screen. Uses two buffers:
@@ -51,3 +63,16 @@ isQuit e =
       keyboardEventKeyMotion keyboardEvent == Pressed &&
       keysymKeycode (keyboardEventKeysym keyboardEvent) == KeycodeQ
     _ -> False
+
+pathLines :: [SPline.Point] -> IO ()
+pathLines []          = return ()
+pathLines ((x,y):pts) = do 
+  GL.vertex $ GL.Vertex2 (x :: GL.GLfloat) (y :: GL.GLfloat) 
+  pathLines' pts
+  where 
+    pathLines' [] = pathLines []
+    pathLines' [(x,y)] = GL.vertex $ GL.Vertex2 (x :: GL.GLfloat) (y :: GL.GLfloat)
+    pathLines' ((x,y):pts) = do 
+      GL.vertex $ GL.Vertex2 (x :: GL.GLfloat) (y :: GL.GLfloat)
+      GL.vertex $ GL.Vertex2 (x :: GL.GLfloat) (y :: GL.GLfloat)
+      pathLines' pts

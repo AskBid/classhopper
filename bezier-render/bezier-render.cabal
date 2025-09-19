@@ -4,11 +4,12 @@ version:            0.1.0.0
 build-type:         Simple
 
 library
-  exposed-modules:  Render
+  exposed-modules:  Interface
   hs-source-dirs:   src
   build-depends:    base ^>=4.18
                   , sdl2
                   , OpenGL
+                  , bezier-core
   default-language: Haskell2010
 
 executable bezier-render-exe
@@ -16,6 +17,7 @@ executable bezier-render-exe
   hs-source-dirs:   app
   build-depends:    base ^>=4.18
                   , bezier-render
+                  , bezier-core
                   , sdl2
                   , OpenGL
   default-language: Haskell2010
