@@ -5,10 +5,11 @@ import qualified Curve.BersteinBFs as SPline
 
 drawing :: IO ()
 drawing = do 
-    GL.renderPrimitive GL.LineStrip $
-      pathLines $ SPline.evaluateCrv [(-0.5, -0.5), (0.0, 0.5), (0.5, 0.0)] 3
-    GL.renderPrimitive GL.LineStrip $
-      pathLines $ SPline.evaluateCrv [(-0.5, -0.5), (0.0, 0.5), (0.5, 0.0)] 14
+  -- GL.color $ GL.Color3 (1 :: GL.GLfloat) 1 1
+  GL.renderPrimitive GL.LineStrip $
+    pathLines $ SPline.evaluateCrv [(-0.5, -0.7), (0.0, 0.7), (0.5, 0.0)] 3
+  GL.renderPrimitive GL.LineStrip $
+    pathLines $ SPline.evaluateCrv [(-0.5, -0.7), (0.0, 0.7), (0.5, 0.0)] 104
 
 pathLines :: [SPline.Point] -> IO ()
 pathLines []          = return ()
