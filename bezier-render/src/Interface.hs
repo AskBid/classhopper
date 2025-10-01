@@ -33,8 +33,29 @@ appLoop window = do
   unless shouldClose $ do
     pollEvents
     GL.clearColor GL.$= GL.Color4 0.43 0.43 0.47 1
-    GL.clear [GL.ColorBuffer]
+    GL.clear [GL.ColorBuffer, GL.DepthBuffer]
+
+    setupOrtho   
+
+    GL.viewport GL.$= (GL.Position 0 0, GL.Size 800 600)
+    setAssonometricView
     D.drawing
+
     swapBuffers window
     appLoop window
 
+setupOrtho :: IO ()
+setupOrtho = do
+  GL.matrixMode GL.$= GL.Projection
+  GL.loadIdentity
+  -- left, right, bottom, top, near, far
+  GL.ortho (-2) 2 (-2) 2 (-2) 2
+  GL.matrixMode GL.$= GL.Modelview 0
+  GL.loadIdentity
+
+setAssonometricView :: IO ()
+setAssonometricView = do
+  GL.loadIdentity
+  GL.rotate (45) (GL.Vector3 1 0 0 :: GL.Vector3 GL.GLfloat)
+  GL.rotate (45) (GL.Vector3 0 0 1 :: GL.Vector3 GL.GLfloat)
+  -- GL.rotate 80 (GL.Vector3 1 0 0 :: GL.Vector3 GL.GLfloat)         -- rotate sideways

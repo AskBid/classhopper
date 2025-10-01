@@ -22,3 +22,13 @@ Conclusion: ImGui negates SDL2’s font-loading advantage, as ImGui handles text
 [Reactive-Banana](https://wiki.haskell.org/Reactive-banana)
 
 [Hackge Reactive-banana](https://hackage.haskell.org/package/reactive-banana)
+
+# GPipe
+
+Would have been nice to use, but it turns out that it is not mantained and it was giving difficulties with more updated packages.
+
+Without this you have to use OpenGL package which is basically an haskelly wrapper on top of the 1:1 OpengGL bindings that go under the name of OpenGLRaw.
+
+In the end you decided to go this way as (OpenGL) as you don't need doing much anyway, so there are little advantages over using typesafe GPipe. And you can extend to OpenGLRaw for more specific not covered tasks.. this way also allows you to go OpenGL 4.x rather than 3.3 and build your own shaders for meshing NURBS surfaces. As that is of course not covered from the retrograde GPipe.
+
+Of course with OpenGL package everything is still thought as a C++ program, so little Haskell like despite the wrapper .. but in the end there is no escape and you can always build on top of it your own haskell like definitions perhaps have you own GPipe one day.
