@@ -12,18 +12,18 @@ drawing = do
     pathLines $ SPline.evaluateCrv [(-0.5, -0.7), (0.0, 0.7), (0.5, 0.0)] 104
 
   GL.renderPrimitive GL.Lines $ do 
+    GL.color $ GL.Color3 0 0 (1 :: GL.GLfloat)
+    GL.vertex $ GL.Vertex3 0     0     (0.05 :: GL.GLfloat)
+    GL.vertex $ GL.Vertex3 0     0     (0.25  :: GL.GLfloat)
+
     GL.color $ GL.Color3 (1 :: GL.GLfloat) 0 0
-    GL.vertex $ GL.Vertex3 0 0 (0 :: GL.GLfloat)
-    GL.vertex $ GL.Vertex3 0.1 0 (0  :: GL.GLfloat)
+    GL.vertex $ GL.Vertex3 0.02  0     (0.01 :: GL.GLfloat)
+    GL.vertex $ GL.Vertex3 0.22  0     (0.01 :: GL.GLfloat)
     
     GL.color $ GL.Color3 0 (1 :: GL.GLfloat) 0
-    GL.vertex $ GL.Vertex3 0 0 (0 :: GL.GLfloat)
-    GL.vertex $ GL.Vertex3 0 0.1 (0 :: GL.GLfloat)
+    GL.vertex $ GL.Vertex3 0     0.02  (0.01 :: GL.GLfloat)
+    GL.vertex $ GL.Vertex3 0     0.22  (0.01 :: GL.GLfloat)
     
-    GL.color $ GL.Color3 0 0 (1 :: GL.GLfloat)
-    GL.vertex $ GL.Vertex3 0 0 (0 :: GL.GLfloat)
-    GL.vertex $ GL.Vertex3 0 0 (0.1 :: GL.GLfloat)
-
     GL.color $ GL.Color3 1 (1 :: GL.GLfloat) 1
     
 

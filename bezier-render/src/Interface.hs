@@ -17,6 +17,7 @@ launchWindow = do
   if not initSuccess
     then error "Failed to initialize GLFW"
     else do
+      windowHint (WindowHint'DepthBits (Just 24))
       window <- createWindow 800 600 "Classhopper 3D" Nothing Nothing
       case window of
         Nothing -> error "Failed to create GLFW window"
@@ -24,15 +25,19 @@ launchWindow = do
           makeContextCurrent (Just win)
           swapInterval 1
 
+          -- Check depth buffer bits
+          depthBits <- GL.get GL.depthBits
+          putStrLn $ "Depth buffer bits: " ++ show depthBits
+
           -- rotation state
-          rotZ <- newIORef 0.0
-          setKeyCallback win (Just (keyHandler rotZ))
+          rotView <- newIORef mkRotationView
+          setKeyCallback win (Just (keyHandler rotView))
           
-          appLoop win rotZ
+          appLoop win rotView
           destroyWindow win
           terminate
 
-appLoop :: Window -> IORef GL.GLfloat -> IO ()
+appLoop :: Window -> IORef RotationView -> IO ()
 appLoop window rotZRef = do
   shouldClose <- windowShouldClose window
   unless shouldClose $ do
@@ -40,11 +45,15 @@ appLoop window rotZRef = do
     GL.clearColor GL.$= GL.Color4 0.43 0.43 0.47 1
     GL.clear [GL.ColorBuffer, GL.DepthBuffer]
 
+    -- Configure depth testing
+    GL.depthFunc GL.$= Just GL.Less
+    GL.depthMask GL.$= GL.Enabled
+
     setupOrtho   
 
     GL.viewport GL.$= (GL.Position 0 0, GL.Size 800 600)
-    rotZ <- readIORef rotZRef
-    setAssonometricView rotZ
+    rotView <- readIORef rotZRef
+    setAssonometricView rotView
     D.drawing
 
     swapBuffers window
@@ -59,18 +68,31 @@ setupOrtho = do
   GL.matrixMode GL.$= GL.Modelview 0
   GL.loadIdentity
 
-setAssonometricView :: GL.GLfloat -> IO ()
-setAssonometricView rotZ = do
+setAssonometricView :: RotationView -> IO ()
+setAssonometricView (rotX, _ , rotZ) = do
   GL.loadIdentity
-  GL.rotate 45 (GL.Vector3 1 0 0 :: GL.Vector3 GL.GLfloat)
-  GL.rotate 45 (GL.Vector3 0 0 1 :: GL.Vector3 GL.GLfloat)
+  GL.rotate rotX (GL.Vector3 1 0 0 :: GL.Vector3 GL.GLfloat)
+  GL.rotate 45   (GL.Vector3 0 0 1 :: GL.Vector3 GL.GLfloat)
   GL.rotate rotZ (GL.Vector3 0 0 1 :: GL.Vector3 GL.GLfloat)
 
 -- Key handler: modify rotation angle
-keyHandler :: IORef GL.GLfloat -> Window -> Key -> Int -> KeyState -> ModifierKeys -> IO ()
+keyHandler :: IORef RotationView 
+           -> Window 
+           -> Key 
+           -> Int 
+           -> KeyState 
+           -> ModifierKeys 
+           -> IO ()
 keyHandler rotZRef _win key scancode action _mods = 
   when (action == KeyState'Pressed || action == KeyState'Repeating) $
     case key of
-      Key'Right -> modifyIORef' rotZRef (+5)
-      Key'Left  -> modifyIORef' rotZRef (subtract 5)
+      Key'Right -> modifyIORef' rotZRef (\(x,y,z) -> (x,y,z+5))
+      Key'Left  -> modifyIORef' rotZRef (\(x,y,z) -> (x,y,z-5))
+      Key'Up    -> modifyIORef' rotZRef (\(x,y,z) -> (x+5,y,z))
+      Key'Down  -> modifyIORef' rotZRef (\(x,y,z) -> (x-5,y,z))
       _         -> return ()
+
+type RotationView = (GL.GLfloat, GL.GLfloat, GL.GLfloat)
+
+mkRotationView :: RotationView
+mkRotationView = (0.0, 0.0, 0.0)
