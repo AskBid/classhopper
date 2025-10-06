@@ -71,7 +71,7 @@ setupOrtho = do
 setAssonometricView :: RotationView -> IO ()
 setAssonometricView (rotX, _ , rotZ) = do
   GL.loadIdentity
-  GL.rotate rotX (GL.Vector3 1 0 0 :: GL.Vector3 GL.GLfloat)
+  GL.rotate (45 + rotX) (GL.Vector3 1 0 0 :: GL.Vector3 GL.GLfloat)
   GL.rotate 45   (GL.Vector3 0 0 1 :: GL.Vector3 GL.GLfloat)
   GL.rotate rotZ (GL.Vector3 0 0 1 :: GL.Vector3 GL.GLfloat)
 
