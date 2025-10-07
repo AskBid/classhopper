@@ -1,9 +1,9 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module Geometry.Curve where
 
 import Geometry.Bernstein
-
--- | thought to be the Control Point coordinates
-type Point = (Float, Float, Float)
+import Geometry.Point (Point, ptProduct, ptsSummationE)
 
 -- | thought tot be the t paramenter to indicate the location
 -- along the curve where we are evaluation the curve. 
@@ -18,16 +18,15 @@ data Curve = Curve
 -- | given basis function and a set of points finds the point 
 -- on the curve at a certain parameter u/t.
 evaluatePt :: Curve -> Parameter -> Point
-evaluatePt (Curve uBerstein cvs) t = tplSum weightedPts 
+evaluatePt (Curve{..}) t = ptsSummationE weightedPts 
   where 
-    tuBerstein = map ($ t) uBerstein
-    tplProduct t (x, y, z) = (x*t, y*t, z*t)
-    weightedPts = zipWith tplProduct tuBerstein cvs
-    tplSum = foldr (\(x,y,z) (sx,sy,sz) -> (x+sx, y+sy, z+sz)) (0,0,0)
+    uBerTs = map ($ t) uCrvBer
+    weightedPts = zipWith ptProduct uBerTs crvCVs
 
 subdivideCrv :: Curve -> Int -> [Point]
 subdivideCrv crv divisions =
   let 
-    params = (/toEnum divisions) <$> [0..toEnum divisions]
+    divs = toEnum divisions
+    params = (/divs) <$> [0..divs]
   in 
     evaluatePt crv <$> params
