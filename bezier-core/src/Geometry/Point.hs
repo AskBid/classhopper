@@ -1,12 +1,17 @@
 module Geometry.Point where 
 
+import Linear.V3
+import Linear.V2 
+import Linear.Vector (zero, (^+^), Additive)
+
 -- | thought to be the Control Point coordinates
-type Point = (Float, Float, Float)
+type Point3d = V3 Float
+type PointUV = V2 Float
 
-ptProduct :: Float -> Point -> Point 
-ptProduct t (x, y, z) = (x*t, y*t, z*t)
+ptsSummationE :: (Additive f, Num a) => [f a] -> f a
+ptsSummationE = foldr (^+^) zero
 
-ptsSummationE :: [Point] -> Point
-ptsSummationE = foldr addPt (0,0,0)
-  where 
-    addPt (x,y,z) (sx,sy,sz) = (x+sx, y+sy, z+sz)
+-- | thought tot be the t paramenter to indicate the location
+-- along the curve where we are evaluation the curve. 
+-- usually 0 < t < 1
+type Parameter = Float
