@@ -1,0 +1,13 @@
+cabal-version:      3.0
+name:               iges-translator
+version:            0.1.0.0
+build-type:         Simple
+
+library
+  exposed-modules:  Geometry.File.IGES.Parser
+  hs-source-dirs:   src
+  build-depends:    base >= 4.7 && < 5
+                  , bezier-core
+                  , linear
+                  , parsec
+  default-language: Haskell2010
