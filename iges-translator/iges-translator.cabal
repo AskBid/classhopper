@@ -5,9 +5,12 @@ build-type:         Simple
 
 library
   exposed-modules:  Geometry.File.IGES.Parser
+                  , Geometry.File.IGES.Type
   hs-source-dirs:   src
   build-depends:    base >= 4.7 && < 5
                   , bezier-core
                   , linear
                   , parsec
+                  , text
+                  , containers
   default-language: Haskell2010
