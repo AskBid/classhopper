@@ -6,6 +6,7 @@ build-type:         Simple
 library
   exposed-modules:  Geometry.File.IGES.Parser
                   , Geometry.File.IGES.Type
+                  , Geometry.File.IGES.Builder
   hs-source-dirs:   src
   build-depends:    base >= 4.7 && < 5
                   , bezier-core

@@ -17,6 +17,8 @@ data SceneFromIGES = SceneFromIGES
   }
 
 type FileLine = T.Text
+type SeqNumDE = Int
+type SeqNumP = Int
 
 data Section = Start | Global | Directory | Parameter | Terminate
   deriving (Show, Eq, Ord)
@@ -26,9 +28,26 @@ type SeqNumRawLine = IM.IntMap T.Text
 type IgesRaw = M.Map Section SeqNumRawLine
 
 data DirEntry = DirEntry
-  { dirSeqNum   :: Int
-  , entityType  :: Int
-  , pointerP    :: Int
-  , nLinesP     :: Int
-  }
+  { dirSeqNum   :: SeqNumDE
+  , entityType  :: EntityType
+  , pointerP    :: SeqNumP
+  , countPlines :: Int
+  } deriving Show
 
+data EntityType 
+  = Surface_128 
+  | TrimSurface_144
+  | CompCurve_102
+  | Curve_126
+  | Line_110
+  | LoopOfCurves_141
+  deriving Show 
+
+mkEntityType :: Int -> Maybe EntityType
+mkEntityType 128 = Just Surface_128
+-- mkEntityType 144 = TrimSurface_144
+-- mkEntityType 102 = CompCurve_102
+-- mkEntityType 126 = Curve_126
+-- mkEntityType 110 = Line_110
+-- mkEntityType 141 = LoopOfCurves_141
+mkEntityType _ = Nothing

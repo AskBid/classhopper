@@ -33,16 +33,16 @@ mkSurface uDeg vDeg cvs =
   where
     pts :: [Point3d]
     pts = (\[x,y,z] -> V3 x y z) <$> chunk 3 cvs
-    -- Notice that there can't exist a surface with less than 4 points (the plane)
     uRows :: Maybe [[Point3d]]
     uRows
       | length pts >= 4 = Just $ chunk (uDeg + 1) pts
       | otherwise       = Nothing
-    -- Once we found all possible U hulls, we take only the one for vDeg if possible.
+    -- ^ Notice that there can't exist a surface with less than 4 points (the plane)
     validSrf Nothing = Nothing
     validSrf (Just uRows') 
       | length uRows' > vDeg = Just $ take (vDeg + 1) uRows'
       | otherwise            = Nothing
+    -- ^ Once we found all possible U hulls, we take only the one for vDeg if possible.
     cos = Just [COS deg2_bfs [V2 0 0.5, V2 0.5 0.8, V2 1 0.5]]
 
 evaluateSrfPt :: Surface -> PointUV -> Point3d

@@ -13,6 +13,7 @@ import Data.Maybe (mapMaybe)
 import Data.List (foldl')
 import Data.Char (isDigit)
 import Text.Read (readMaybe)
+import Control.Monad (when, join)
 
 import Geometry.File.IGES.Type 
 
@@ -31,7 +32,7 @@ readIGES location = do
 
 buildIgesRaw :: [FileLine] -> IgesRaw
 buildIgesRaw lines =
-  foldl' insertLine M.empty $ mapMaybe mkIgesRawLine lines
+  foldl' insertLine M.empty $ mapMaybe mkIgesRawLine lines 
 
 insertLine :: IgesRaw -> (Section, SeqNumRawLine) -> IgesRaw
 insertLine acc (sect, lineMap) =
