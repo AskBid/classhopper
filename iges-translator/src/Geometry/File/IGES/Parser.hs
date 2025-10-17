@@ -11,11 +11,11 @@ import qualified Data.Map.Strict as M
 import qualified Data.IntMap.Strict as IM
 import Data.Maybe (mapMaybe)
 import Data.List (foldl')
-import Data.Char (isDigit)
 import Text.Read (readMaybe)
 import Control.Monad (when, join)
 
 import Geometry.File.IGES.Type 
+import Geometry.File.IGES.Helper 
 
 fileLocation :: String
 fileLocation = "./iges-examples/NegativeEdgeFix_WiP_220913.igs"
@@ -54,9 +54,3 @@ getSection = \case
   'P' -> Just Parameter
   'T' -> Just Terminate
   _ -> Nothing
-
-textToInt :: T.Text -> Maybe Int
-textToInt txt = 
-  case decimal (T.takeWhile isDigit (T.strip txt)) of
-    Left _       -> Nothing
-    Right (n, _) -> Just n
