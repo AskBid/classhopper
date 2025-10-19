@@ -6,6 +6,7 @@ build-type:         Simple
 library
   exposed-modules:  Geometry.File.IGES.Parser
                   , Geometry.File.IGES.Type
+                  , Geometry.File.IGES.TypeEntity
                   , Geometry.File.IGES.BuilderDirectory
                   , Geometry.File.IGES.BuilderParameter
                   , Geometry.File.IGES.ParameterParser
@@ -17,4 +18,6 @@ library
                   , parsec
                   , text
                   , containers
+                  , lens
+                  , data-default
   default-language: Haskell2010

@@ -6,8 +6,11 @@ import Text.Parsec
 import qualified Data.Text as T
 import Text.Read (readMaybe)
 import Control.Monad (when)
+import Control.Lens
+import Data.Default
 
 import Geometry.File.IGES.Type 
+import Geometry.File.IGES.TypeEntity
 import Geometry.File.IGES.Helper
 
 -- | using user state from the parser to build up the return Surface type.
@@ -35,6 +38,7 @@ calculateColsPads k1 k2 m1 m2 =
 
 surface128parser :: ParserP Surface128data 
 surface128parser = do 
+  modifyState (const def)
   et <- entity
   when (et /= Surface128) $
     fail "Expected entity 128 but got something else"
@@ -43,16 +47,45 @@ surface128parser = do
   m1 <- parseKM 
   m2 <- parseKM
   let pads = calculateColsPads k1 k2 m1 m2
-  closedU <- parse01 
-  closedV <- parse01
-  polynomial <- parse01
-  periodicU <- parse01
-  periodicV <- parse01
-  knotsU <- parseDoubles $ a pads
-  knotsV <- parseDoubles $ b pads
-  weights <- parseDoubles $ c pads
+  parseFlags
+  parseKnots pads
+  parseWeights pads
+  parseCPs pads
+  getState
+
+-- SUB PARSERs \/
+--
+parseFlags :: ParserP ()
+parseFlags = do
+  closedU'    <- parse01
+  closedV'    <- parse01
+  polynomial' <- parse01
+  periodicU'  <- parse01
+  periodicV'  <- parse01
+  modifyState 
+    $ (flags . closedU .~ closedU')
+    . (flags . closedV .~ closedV')
+    . (flags . polynomial .~ polynomial')
+    . (flags . periodicU  .~ periodicU')
+    . (flags . periodicV  .~ periodicV')
+
+parseKnots :: ColsPaddings -> ParserP ()
+parseKnots pads = do
+  u <- parseDoubles (a pads)
+  v <- parseDoubles (b pads)
+  modifyState $
+    (knotsU .~ u)
+    . (knotsV .~ v)
+
+parseWeights :: ColsPaddings -> ParserP ()
+parseWeights pads = do
+  w <- parseDoubles $ c pads
+  modifyState $ weights .~ w
+
+parseCPs :: ColsPaddings -> ParserP ()
+parseCPs pads = do
   cps   <- parseDoubles $ c pads * 3
-  return undefined -- Surface128data m1 m2 knotsU knotsV weights cps 
+  modifyState $ controlPoints .~ cps
 
 entity :: ParserP EntityType
 entity = do
