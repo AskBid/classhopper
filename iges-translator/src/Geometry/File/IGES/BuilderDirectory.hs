@@ -34,7 +34,7 @@ buildDEs igs = mapMaybe (\(k,r) ->
 readDirectoryEntry :: SeqNumDE -> SeqNumRawLine -> Maybe DirEntry
 readDirectoryEntry n de = do 
   fstLn <- chunkText 8 <$> IM.lookup n de 
-  entityType <- mkEntityType =<< textToInt =<< safeIndex fstLn 0
+  entityType <- ckEntityType =<< textToInt =<< safeIndex fstLn 0
   sndLn <- chunkText 8 <$> IM.lookup (n+1) de
   pointerP <- textToInt =<< safeIndex fstLn 1 
   countPlines <- textToInt =<< safeIndex sndLn 3

@@ -20,8 +20,8 @@ import Geometry.File.IGES.Helper
 fileLocation :: String
 fileLocation = "./iges-examples/NegativeEdgeFix_WiP_220913.igs"
 
-readIGES :: FilePath -> IO [FileLine]
-readIGES location = do 
+readIGESfile :: FilePath -> IO [FileLine]
+readIGESfile location = do 
   file <- TLIO.readFile location
   let lines' = map TL.toStrict (TL.lines file)
   print $ length lines'
