@@ -9,6 +9,7 @@ import Prelude hiding (init)
 import Data.IORef
 
 import qualified Drawing as D
+import qualified Scene as SC
 
 launchWindow :: IO ()
 launchWindow = do
@@ -31,14 +32,20 @@ launchWindow = do
           -- rotation state
           rotView <- newIORef mkRotationView
           setKeyCallback win (Just (keyHandler rotView))
-          
-          appLoop win rotView 
+              
+          sceneIges <- SC.openIGES SC.fileLocation
+          let scene = SC.fromIgesSceneToScene sceneIges
+          putStrLn $ "Surface128parserfaces to draw: " 
+                   <> show (length $ SC.srfs scene)
+
+          setupOrtho 800 600 -- initial ortho cube
+          appLoop win scene rotView 
 
           destroyWindow win
           terminate
 
-appLoop :: Window -> IORef RotationView -> IO ()
-appLoop window rotZRef = do
+appLoop :: Window -> SC.Scene -> IORef RotationView -> IO ()
+appLoop window scene rotZRef = do
   shouldClose <- windowShouldClose window
   unless shouldClose $ do
     pollEvents
@@ -47,25 +54,26 @@ appLoop window rotZRef = do
 
     -- Configure depth testing
     GL.depthFunc GL.$= Just GL.Less
-    GL.depthMask GL.$= GL.Enabled
-
-    (width, height) <- getFramebufferSize window
-    adjustViewportAndProjection window width height
-    setupOrtho width height
+    GL.depthMask GL.$= GL.Enabled 
 
     rotView <- readIORef rotZRef
     setAssonometricView rotView
-    D.drawing
+
+    D.drawing scene
 
     swapBuffers window
-    appLoop window rotZRef
+    appLoop window scene rotZRef
 
 setupOrtho :: Int -> Int -> IO ()
 setupOrtho width height = do
+  let ratio = fromIntegral width / fromIntegral height
+      zoom = 0.1
+      wOrth = fromIntegral width * zoom -- zoom * ratio / 2
+      hOrth = fromIntegral height * zoom -- zoom * ratio / 2 
   GL.matrixMode GL.$= GL.Projection
   GL.loadIdentity
   -- left, right, bottom, top, near, far
-  GL.ortho (-2) 2 (-2) 2 (-2) 2
+  GL.ortho (-wOrth) wOrth (-hOrth) hOrth (-4000) 4000
   GL.matrixMode GL.$= GL.Modelview 0
   GL.loadIdentity
 
@@ -98,27 +106,10 @@ type RotationView = (GL.GLfloat, GL.GLfloat, GL.GLfloat)
 mkRotationView :: RotationView
 mkRotationView = (0.0, 0.0, 0.0)
 
--- keep a fixed orthographic "world" box, and compute a centered viewport that 
--- preserves that box's aspect
+-- keep a fixed orthographic "world" box, and compute a centered 
+-- viewport that preserves that box's aspect. 
 adjustViewportAndProjection :: Window -> Int -> Int -> IO ()
 adjustViewportAndProjection _ winW winH = do
-  let w = max 1 winW
-      h = max 1 winH
-      -- define your fixed "world" extents here (currently -2..2 in both 
-      -- axes -> width=4, height=4 -> aspect = 1)
-      worldW = 4.0 :: Double
-      worldH = 4.0 :: Double
-      worldAspect = worldW / worldH
-      winWf = fromIntegral w :: Double
-      winHf = fromIntegral h :: Double
-      winAspect = winWf / winHf
-
-      (vpW, vpH)
-        | winAspect >= worldAspect = (round (winHf * worldAspect), round winHf)
-        | otherwise                = (round winWf, round (winWf / worldAspect))
-      vpX = (w - vpW) `div` 2
-      vpY = (h - vpH) `div` 2
-
-  -- set the centered viewport (letterbox)
-  GL.viewport GL.$= (GL.Position (fromIntegral vpX) (fromIntegral vpY),
-                     GL.Size (fromIntegral vpW) (fromIntegral vpH))
+  setupOrtho winW winH
+  GL.viewport GL.$= (GL.Position 0 0,
+                     GL.Size (fromIntegral winW) (fromIntegral winH))

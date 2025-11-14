@@ -14,10 +14,8 @@ import Text.Read (readMaybe)
 import Control.Monad (when, join)
 
 import Geometry.File.IGES.Type 
-import Geometry.File.IGES.Parser
+import Geometry.File.IGES.BuilderIgesRaw
 import Geometry.File.IGES.Helper
-import Geometry.Surface
-
 
 -- | at the moment is only a list of DEs, but if we will start 
 -- support for composite entities that refer back to DEs, will

@@ -1,6 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
-
-module Geometry.File.IGES.ParameterParser where 
+-- | To better understand this parser is hepful to read about 
+-- entity 128 in any IGES ISO documentation.
+module Geometry.File.IGES.ParameterParser 
+  ( surface128parser
+  ) where 
 
 import Text.Parsec
 import qualified Data.Text as T
@@ -31,8 +34,8 @@ calculateColsPads k1 k2 m1 m2 =
   in ColsPaddings  
     { n1 = n1
     , n2 = n2
-    , a  = n1+2*m1 
-    , b  = n2+2*m2 
+    , a  = k1+m1+2  
+    , b  = k2+m2+2
     , c  = (1+k1)*(1+k2)
     }
 
@@ -46,6 +49,9 @@ surface128parser = do
   k2 <- parseKM 
   m1 <- parseKM 
   m2 <- parseKM
+  modifyState 
+    $ (degreeU .~ m1)
+    . (degreeV .~ m2)
   let pads = calculateColsPads k1 k2 m1 m2
   parseFlags
   parseKnots pads
@@ -54,7 +60,6 @@ surface128parser = do
   getState
 
 -- SUB PARSERs \/
---
 parseFlags :: ParserP ()
 parseFlags = do
   closedU'    <- parse01
@@ -116,6 +121,21 @@ parseDoubles times = count times floatToken
 floatToken :: ParserP Double
 floatToken = do
   tok <- anyToken
-  case readMaybe (T.unpack tok) of
+  let tokE = normalizeFortranDouble tok
+  case readMaybe (T.unpack $ sortEndingDot tokE) of
     Just x  -> return x
     Nothing -> fail $ "Expected a float, got: " ++ T.unpack tok
+  where 
+    sortEndingDot t
+      | T.last t == '.' = t <> "0"
+      | otherwise       = t
+
+-- | Convert Fortran-style exponents (D or d) to E, for Double parsing.
+normalizeFortranDouble :: T.Text -> T.Text
+normalizeFortranDouble = T.map replaceD
+  where
+    replaceD c
+      | c == 'D' || c == 'd' = 'E'
+      | otherwise            = c
+
+

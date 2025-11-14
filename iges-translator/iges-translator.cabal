@@ -4,16 +4,16 @@ version:            0.1.0.0
 build-type:         Simple
 
 library
-  exposed-modules:  Geometry.File.IGES.Parser
+  exposed-modules:  Geometry.File.IGES.BuilderIgesRaw
                   , Geometry.File.IGES.Type
                   , Geometry.File.IGES.TypeEntity
                   , Geometry.File.IGES.BuilderDirectory
                   , Geometry.File.IGES.BuilderParameter
                   , Geometry.File.IGES.ParameterParser
                   , Geometry.File.IGES.Helper
+                  , Geometry.File.IGES.RunIgesReader
   hs-source-dirs:   src
   build-depends:    base >= 4.7 && < 5
-                  , bezier-core
                   , linear
                   , parsec
                   , text

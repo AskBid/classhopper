@@ -1,18 +1,28 @@
 { pkgs ? import <nixpkgs> {} }:
 
+let
+  haskell = pkgs.haskell.packages.ghc98;
+in
+
 pkgs.mkShell {
   buildInputs = [
-    pkgs.haskell.compiler.ghc96
-    pkgs.cabal-install
-    pkgs.haskell.packages.ghc96.haskell-language-server
-    pkgs.haskellPackages.hlint
-    pkgs.haskellPackages.hoogle
+    pkgs.haskell.compiler.ghc98
+    haskell.cabal-install
 
-    # Haskell OpenGL bindings
-    pkgs.haskellPackages.OpenGL
-    pkgs.haskellPackages.GLFW-b
+    # NOTE: intentionally NOT adding haskell.haskell-language-server here
+    # because building HLS inside the shell is causing the ghc-exactprint
+    # / TransformT type mismatch errors.
 
-    # System libs for GL + GLFW
+    # Useful Haskell tools (no HLS)
+    haskell.hlint
+    haskell.hoogle
+
+    # Haskell libraries used by your project
+    haskell.OpenGL
+    haskell."GLFW-b"
+    haskell.linear
+
+    # System deps for OpenGL + GLFW
     pkgs.pkg-config
     pkgs.glfw
     pkgs.libGL
@@ -30,7 +40,9 @@ pkgs.mkShell {
   ];
 
   shellHook = ''
+    # keep this minimal — system drivers usually provide required libs
     export LD_LIBRARY_PATH=${pkgs.libGLU}/lib:$LD_LIBRARY_PATH
-    export LD_LIBRARY_PATH=${pkgs.libglvnd}/lib:$LD_LIBRARY_PATH
+    echo "Entered nix-shell: GHC $(ghc --version)"
   '';
 }
+

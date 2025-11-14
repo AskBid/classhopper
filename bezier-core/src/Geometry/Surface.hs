@@ -27,7 +27,7 @@ instance Show Surface where
 
 -- From a list of Float construct a point for every 3 Float, and builds a surface
 -- if there are enough points to comply with the given U and V degrees.
-mkSurface :: Int -> Int -> [Float] -> Maybe Surface
+mkSurface :: Int -> Int -> [Double] -> Maybe Surface
 mkSurface uDeg vDeg cvs = 
   Surface <$> bernsteinSelector uDeg <*> bernsteinSelector vDeg <*> validSrf uRows <*> cos
   where
@@ -55,7 +55,7 @@ evaluateSrfPt (Surface{..}) (V2 u v) = evaluateSrfPt' _CVs uBF_ts vBF_ts
 -- | P_00 P_10 P_20 j=0
 -- | P_01 P_11 P_21 j=1
 -- summationE_ij : B_i * B_j * P_ij
-evaluateSrfPt' :: [[Point3d]] -> [Float] -> [Float] -> Point3d
+evaluateSrfPt' :: [[Point3d]] -> [Double] -> [Double] -> Point3d
 evaluateSrfPt' srfCVs uBerTs_i vBerTs_j  = ptsSummationE $ concat weightedPts
   where 
     parseUrow vBerT_j = zipWith (*^) ((* vBerT_j) <$> uBerTs_i) 
@@ -68,9 +68,9 @@ subdivideIsocrv uvDir t divisions (Surface{..}) = case uvDir of
   V -> flip (evaluateSrfPt' _CVs) (map ($ t) vBasisFuncs) <$> paramsBerTs uBasisFuncs
   where 
     div = toEnum divisions
-    params :: [Float]
+    params :: [Double]
     params = (/div) <$> [0..div]
-    paramsBerTs :: Bernstein -> [[Float]]
+    paramsBerTs :: Bernstein -> [[Double]]
     paramsBerTs uORvBasisFuncs = map (\t -> map ($ t) uORvBasisFuncs) params
 
 evaluateCOS :: Surface -> Int -> COS -> [Point3d]

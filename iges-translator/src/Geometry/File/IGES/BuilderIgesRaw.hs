@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase        #-}
 
-module Geometry.File.IGES.Parser where
+module Geometry.File.IGES.BuilderIgesRaw where
 
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -16,9 +16,6 @@ import Control.Monad (when, join)
 
 import Geometry.File.IGES.Type 
 import Geometry.File.IGES.Helper 
-
-fileLocation :: String
-fileLocation = "./iges-examples/NegativeEdgeFix_WiP_220913.igs"
 
 readIGESfile :: FilePath -> IO [FileLine]
 readIGESfile location = do 

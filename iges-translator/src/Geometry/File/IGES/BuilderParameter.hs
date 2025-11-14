@@ -1,10 +1,8 @@
--- {-# LANGUAGE OverloadedStrings #-}
--- {-# LANGUAGE LambdaCase        #-}
-
-module Geometry.File.IGES.BuilderParameter where
+module Geometry.File.IGES.BuilderParameter 
+  ( formatParameter 
+  ) where
 
 import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
 import qualified Data.Map.Strict as M
 import qualified Data.IntMap.Strict as IM
 import Data.Maybe (mapMaybe, listToMaybe)
@@ -14,13 +12,12 @@ import Text.Read (readMaybe)
 import Control.Monad (when, join)
 
 import Geometry.File.IGES.Type 
-import Geometry.File.IGES.Parser
+import Geometry.File.IGES.BuilderIgesRaw
 import Geometry.File.IGES.Helper
-import Geometry.Surface
 
 -- | the column at which the free formatted parameter data stops.
 pColumnEnd :: SeqNumP
-pColumnEnd = 66
+pColumnEnd = 65
 
 formatParameter :: SeqNumP -> Int -> IgesRaw -> Maybe Parameter
 formatParameter start pCount igs = do

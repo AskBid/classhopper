@@ -5,8 +5,8 @@ import Linear.V2
 import Linear.Vector (zero, (^+^), Additive)
 
 -- | thought to be the Control Point coordinates
-type Point3d = V3 Float
-type PointUV = V2 Float
+type Point3d = V3 Double
+type PointUV = V2 Double
 
 ptsSummationE :: (Additive f, Num a) => [f a] -> f a
 ptsSummationE = foldr (^+^) zero
@@ -14,4 +14,4 @@ ptsSummationE = foldr (^+^) zero
 -- | thought tot be the t paramenter to indicate the location
 -- along the curve where we are evaluation the curve. 
 -- usually 0 < t < 1
-type Parameter = Float
+type Parameter = Double

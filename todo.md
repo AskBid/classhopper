@@ -1,0 +1,1 @@
+- [x] fix Fortran scientific notation in IGES parsing. (-5.69032900517688D-8)
