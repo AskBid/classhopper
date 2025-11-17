@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
+-- | All the types related to the IGES file entities.
 module Geometry.File.IGES.TypeEntity where 
 
 import Control.Lens
@@ -21,22 +22,10 @@ data Flags128 = Flags128
   , _polynomial :: Bool
   , _closedU :: Bool 
   , _closedV :: Bool 
-  , _accepted :: Maybe Bool
   } deriving (Show, Eq)
 
 makeLenses ''Flags128
 makeLenses ''Surface128data
-
-ckFlags128 :: Surface128data -> Surface128data
-ckFlags128 srf =
-  if and [ not $ srf ^. flags . periodicU
-         , not $ srf ^. flags . periodicV
-         ,       srf ^. flags . polynomial 
-         , not $ srf ^. flags . closedU
-         , not $ srf ^. flags . closedV
-         ]
-  then srf & flags . accepted ?~ True
-  else srf & flags . accepted ?~ False
 
 instance Default Flags128 where
   def = Flags128
@@ -45,7 +34,6 @@ instance Default Flags128 where
     , _polynomial = False
     , _closedU    = True
     , _closedV    = True
-    , _accepted   = Nothing
     }
 
 instance Default Surface128data where

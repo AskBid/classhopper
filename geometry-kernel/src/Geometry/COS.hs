@@ -2,13 +2,13 @@
 
 module Geometry.COS where
 
-import Geometry.Bernstein
+import Geometry.Bezier
 import Geometry.Point
 
 import Linear.Vector ((*^))
 
 data COS = COS
-  { uBasisFuncs :: Bernstein
+  { uBasisFuncs :: [Bernstein]
   , _CVs :: [PointUV]
   }
 

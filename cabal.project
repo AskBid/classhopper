@@ -1,4 +1,4 @@
 packages:
-  bezier-core/
-  bezier-render/
-  iges-translator/
+  geometry-kernel/
+  render/
+  file-translator/

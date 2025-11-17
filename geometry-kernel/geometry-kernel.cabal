@@ -1,0 +1,19 @@
+cabal-version:      3.0
+name:               geometry-kernel
+version:            0.1.0.0
+build-type:         Simple
+
+library
+  exposed-modules:  Geometry.Type
+                  , Geometry.Bezier 
+                  , Geometry.Helper
+                  , Geometry.Point
+                  , Geometry.Knot
+                  , Geometry.Curve 
+                  , Geometry.BSpline
+                  , Geometry.Surface
+                  , Geometry.COS 
+  hs-source-dirs:   src
+  build-depends:    base >=4.18 && <=4.20
+                  , linear
+  default-language: Haskell2010

@@ -40,8 +40,7 @@ pkgs.mkShell {
   ];
 
   shellHook = ''
-    # keep this minimal — system drivers usually provide required libs
-    export LD_LIBRARY_PATH=${pkgs.libGLU}/lib:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=${pkgs.glfw}/lib:${pkgs.libGL}/lib:${pkgs.libGLU}/lib:${pkgs.mesa}/lib:${pkgs.xorg.libX11}/lib:${pkgs.xorg.libXi}/lib:${pkgs.xorg.libXrandr}/lib:${pkgs.xorg.libXrender}/lib:${pkgs.xorg.libXcursor}/lib:${pkgs.xorg.libXinerama}/lib:${pkgs.xorg.libXxf86vm}/lib:$LD_LIBRARY_PATH
     echo "Entered nix-shell: GHC $(ghc --version)"
   '';
 }

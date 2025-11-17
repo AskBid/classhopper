@@ -1,5 +1,5 @@
 cabal-version:      3.0
-name:               bezier-render
+name:               render
 version:            0.1.0.0
 build-type:         Simple
 
@@ -11,9 +11,11 @@ library
   build-depends:    base >= 4.7 && < 5
                   , GLFW-b >= 3.3.0
                   , OpenGL >= 3.0.3
-                  , bezier-core
+                  , geometry-kernel
                   , linear
-                  , iges-translator
+                  , file-translator
+                  , lens
+                  , mtl
   default-language: Haskell2010
 
 executable bezier-render-exe
@@ -22,8 +24,10 @@ executable bezier-render-exe
   build-depends:    base >= 4.7 && < 5
                   , GLFW-b >= 3.3.0
                   , OpenGL >= 3.0.3
-                  , bezier-render
-                  , bezier-core
-                  , iges-translator
+                  , render
+                  , geometry-kernel
+                  , file-translator
                   , linear
+                  , lens
+                  , mtl
   default-language: Haskell2010
