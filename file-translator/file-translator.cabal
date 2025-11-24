@@ -12,6 +12,8 @@ library
                   , Geometry.File.IGES.ParameterParser
                   , Geometry.File.IGES.Helper
                   , Geometry.File.IGES.RunIgesReader
+                  , Geometry.File.TranslatorAppType
+                  , Geometry.File.TranslatorApp
   hs-source-dirs:   src
   build-depends:    base >= 4.7 && < 5
                   , linear
@@ -20,4 +22,5 @@ library
                   , containers
                   , lens
                   , data-default
+                  , mtl
   default-language: Haskell2010

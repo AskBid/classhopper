@@ -41,6 +41,7 @@ calculateColsPads k1 k2 m1 m2 =
 
 surface128parser :: ParserP Surface128data 
 surface128parser = do 
+  -- modifyState acts on userState of ParsecT 
   modifyState (const def)
   et <- entity
   when (et /= Surface128) $

@@ -21,7 +21,6 @@ readIGESfile :: FilePath -> IO [FileLine]
 readIGESfile location = do 
   file <- TLIO.readFile location
   let lines' = map TL.toStrict (TL.lines file)
-  print $ length lines'
   return lines'
   -- TL.lines splits lazily.
   -- TL.toStrict converts each line into strict Text.

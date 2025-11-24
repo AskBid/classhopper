@@ -44,5 +44,3 @@ chunkText n txt
   | otherwise  =
     let (chunk, rest) = T.splitAt n txt
     in chunk : chunkText n rest 
-
-
