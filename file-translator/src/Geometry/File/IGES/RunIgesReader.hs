@@ -6,7 +6,7 @@ module Geometry.File.IGES.RunIgesReader
 
 import Text.Parsec (runParser, ParseError)
 import Text.Parsec.Pos (initialPos)
-import Text.Parsec.Error (newErrorMessage, Message(..))
+import Text.Parsec.Error (newErrorMessage, Message(..), errorMessages, messageString)
 import Data.Default
 import qualified Data.Text as T
 import Control.Monad.IO.Class (liftIO)
@@ -44,22 +44,31 @@ getIgesEntities location = do
   logInfo "Built raw IGES map"
   des <- catMaybes <$> buildDEs igs
   logInfo $ "Found " <> T.pack (show (length des)) <> " IGES directory entries"
-  let eParams = fishParameterFromDE igs <$> des
+  eParams <- mapM (fishParameterFromDE igs) des
   logInfo "Finished IGES parameter parsing."
   let params = onlyRights eParams
   logInfo $ "Attempted " <> T.pack (show (length eParams)) <> " parameters parsing"
   logInfo $ "Successful parsings: " <> T.pack (show (length params))
-  return $ params
+  return params
 
 fishParameterFromDE 
   :: IgesRaw 
   -> DirEntry 
-  -> Either ParseError Surface128data
+  -> TranslatorApp (Either ParseError Surface128data)
 fishParameterFromDE igs de = do
   let mP = formatParameter (pointerP de) (countPlines de) igs
   case mP of
-    Nothing  -> Left (toParseError "Missing parameter text block.")
-    Just p   -> runParser surface128parser def "" p
+    Nothing  -> do 
+      let err = "Missing parameter text block."
+      logInfo err
+      return $ Left (toParseError $ T.unpack err)
+    Just p   -> do 
+      let parseResult = runParser surface128parser def "" p
+      case parseResult of 
+        Left err -> do 
+          mapM_ (logInfo . T.pack . messageString) $ errorMessages err
+          return $ Left err
+        Right ent -> return $ Right ent
 
 toParseError :: String -> ParseError
 toParseError msg = newErrorMessage (Message msg) (initialPos "<input>")
