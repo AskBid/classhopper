@@ -22,3 +22,10 @@ logInfo :: Text -> TranslatorApp ()
 logInfo msg = do
   Env logger <- ask
   liftIO $ logger msg
+
+logMaybe :: Maybe a -> Text -> Text -> TranslatorApp ()
+logMaybe maybe ok err = do 
+  Env logger <- ask
+  case maybe of
+    Nothing -> liftIO $ logger err
+    Just _  -> liftIO $ logger ok 

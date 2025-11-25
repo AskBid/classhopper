@@ -10,6 +10,7 @@ import Text.Parsec.Error (newErrorMessage, Message(..))
 import Data.Default
 import qualified Data.Text as T
 import Control.Monad.IO.Class (liftIO)
+import Data.Maybe (catMaybes)
 
 import Geometry.File.IGES.BuilderIgesRaw (readIGESfile, buildIgesRaw)
 import Geometry.File.IGES.BuilderDirectory (buildDEs)
@@ -17,7 +18,6 @@ import Geometry.File.IGES.BuilderParameter (formatParameter)
 import Geometry.File.IGES.ParameterParser (surface128parser)
 import Geometry.File.IGES.TypeEntity
 import Geometry.File.IGES.Type
-
 import Geometry.File.TranslatorAppType (Env, TranslatorApp(..), logInfo)
 
 -----------
@@ -42,7 +42,7 @@ getIgesEntities location = do
   logInfo $ "Loaded " <> T.pack (show (length rawLines)) <> " raw lines"
   let igs = buildIgesRaw rawLines
   logInfo "Built raw IGES map"
-  let des = buildDEs igs
+  des <- catMaybes <$> buildDEs igs
   logInfo $ "Found " <> T.pack (show (length des)) <> " IGES directory entries"
   let eParams = fishParameterFromDE igs <$> des
   logInfo "Finished IGES parameter parsing."

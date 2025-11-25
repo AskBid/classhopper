@@ -1,4 +1,4 @@
--- {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings #-}
 -- {-# LANGUAGE LambdaCase        #-}
 
 module Geometry.File.IGES.BuilderDirectory where
@@ -13,30 +13,62 @@ import Data.Char (isDigit)
 import Text.Read (readMaybe)
 import Control.Monad (when, join)
 
-import Geometry.File.IGES.Type 
+import Geometry.File.IGES.Type (ckEntityType, IgesRaw(..), DirEntry(..), Section(..))
 import Geometry.File.IGES.BuilderIgesRaw
-import Geometry.File.IGES.Helper
+import Geometry.File.IGES.Helper (safeIndex, textToInt)
+import Geometry.File.TranslatorAppType (Env, TranslatorApp(..), logInfo)
 
 -- | at the moment is only a list of DEs, but if we will start 
 -- support for composite entities that refer back to DEs, will
 -- need perhaps to make this a @Map SeqNumDE DirEntry@
-buildDEs :: IgesRaw -> [DirEntry] 
-buildDEs igs = mapMaybe (\(k,r) ->
-    if odd k 
-    then readDirectoryEntry k section
-    else Nothing
-  ) $ IM.toList section
+buildDEs :: IgesRaw -> TranslatorApp [Maybe DirEntry] 
+buildDEs igs = do 
+  let linesDEsection = IM.toList section 
+  logInfo $ "Found " 
+          <> T.pack (show (length linesDEsection)) 
+          <> " lines in the Directory Entry section of the IGES file."
+  sequence $ mapCouples readDirectoryEntry linesDEsection
   where 
     section = igs M.! Directory
+    
+    mapCouples :: (a -> a -> b) -> [a] -> [b] 
+    mapCouples f [] = []
+    mapCouples f [l] = []
+    mapCouples f (l1:l2:ls) = f l1 l2 : mapCouples f ls
 
-readDirectoryEntry :: SeqNumDE -> SeqNumRawLine -> Maybe DirEntry
-readDirectoryEntry n de = do 
-  fstLn <- chunkText 8 <$> IM.lookup n de 
-  entityType <- ckEntityType =<< textToInt =<< safeIndex fstLn 0
-  sndLn <- chunkText 8 <$> IM.lookup (n+1) de
-  pointerP <- textToInt =<< safeIndex fstLn 1 
-  countPlines <- textToInt =<< safeIndex sndLn 3
-  return $ DirEntry n entityType pointerP countPlines
+readDirectoryEntry 
+  :: (IM.Key, T.Text) 
+  -> (IM.Key, T.Text) 
+  -> TranslatorApp (Maybe DirEntry)
+readDirectoryEntry (rowN1, l1) (rowN2, l2) = do
+  let cellsL1 = chunkText 8 l1
+      deEntityTypeDigit = textToInt =<< safeIndex cellsL1 0
+
+  case deEntityTypeDigit of 
+
+    Nothing -> do 
+      logInfo "ERROR! :: EntityType digit was not perceived."
+      return Nothing 
+
+    Just n  -> do 
+      logInfo $ "EntityType digit reckognised as: " <> T.pack (show n)
+      case ckEntityType n of
+        Nothing -> do 
+          logInfo "WARNING! :: The EntityType found is not supported." 
+          return Nothing
+        Just e -> do 
+          logInfo $ "Reckognised entity type " <> T.pack (show e) <> "."
+          let cellsL2 = chunkText 8 l2
+              pointerP = textToInt =<< safeIndex cellsL1 1 
+              countOfPlines = textToInt =<< safeIndex cellsL2 3
+          case DirEntry rowN1 e <$> pointerP <*> countOfPlines of 
+            Nothing -> do 
+              logInfo "ERROR! :: Directory Entry not paramenter pointer or lines count missing!"
+              return Nothing 
+            Just de -> do 
+              logInfo "Directory entity successfully parsed:"
+              logInfo $ T.pack (show de)
+              return $ Just de
 
 chunkText :: Int -> T.Text -> [T.Text]
 chunkText n txt
