@@ -8,7 +8,8 @@ import Text.Parsec
   ( runParser
   , ParseError
   )
-import Text.Parsec.Pos (initialPos)
+import Text.Parsec.Pos 
+  (initialPos)
 import Text.Parsec.Error 
   ( newErrorMessage
   , Message(..)
@@ -17,8 +18,10 @@ import Text.Parsec.Error
   )
 import Data.Default
 import qualified Data.Text as T
-import Control.Monad.IO.Class (liftIO)
-import Data.Maybe (catMaybes)
+import Control.Monad.IO.Class 
+  (liftIO)
+import Data.Maybe 
+  (catMaybes)
 import RIO 
   ( logInfo
   , logError
@@ -26,13 +29,18 @@ import RIO
   , display
   ) 
 
-import Geometry.File.IGES.BuilderIgesRaw (readIGESfile, buildIgesRaw)
-import Geometry.File.IGES.BuilderDirectory (buildDEs)
-import Geometry.File.IGES.BuilderParameter (formatParameter)
-import Geometry.File.IGES.ParameterParser (surface128parser)
+import Geometry.File.IGES.BuilderIgesRaw 
+  (readIGESfile, buildIgesRaw)
+import Geometry.File.IGES.BuilderDirectory 
+  (buildDEs)
+import Geometry.File.IGES.BuilderParameter 
+  (formatParameter)
+import Geometry.File.IGES.ParameterParser 
+  (surface128parser)
 import Geometry.File.IGES.TypeEntity
 import Geometry.File.IGES.Type
-import Geometry.File.TranslatorAppType (TranslatorApp(..))
+import Geometry.File.TranslatorAppType 
+  (TranslatorApp(..))
 
 -----------
 -- SCHEMA

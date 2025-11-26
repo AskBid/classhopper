@@ -4,9 +4,10 @@ module Drawing where
 
 import qualified Graphics.Rendering.OpenGL as GL
 import qualified Geometry.Curve as C
-import qualified Geometry.Bernstein as B
+import qualified Geometry.Bezier as B
 import qualified Geometry.Surface as S
 import qualified Geometry.Point as P
+import Geometry.Type
 
 import Linear.V3
 import Data.Maybe (fromMaybe)
@@ -17,8 +18,12 @@ import Scene
 drawing :: Scene -> IO ()
 drawing scene = do 
   drawGlobalAxis 
-  mapM_ (drawCurve 50) $ crvs scene 
-  mapM_ drawSurface $ srfs scene
+  mapM_ (drawCurve 500) $ crvs scene 
+  mapM_ drawSurface $ srfs scene 
+
+isBezier :: S.Surface -> Bool 
+isBezier (S.Surface _ _ Bezier Bezier _ _) = True
+isBezier _ = False
 
 pathLines :: [P.Point3d] -> IO ()
 pathLines [] = return ()
@@ -49,7 +54,7 @@ drawCurve precision crv = do
   -- hull
   GL.color $ GL.Color3 (0.4 :: GL.GLdouble) 0.7 0.7
   GL.renderPrimitive GL.LineStrip $
-    pathLines $ C._CVs crv
+    pathLines $ C.cvs crv
   -- curve
   GL.lineWidth GL.$= 4.0
   GL.color $ GL.Color3 (0.1 :: GL.GLdouble) 0.1 0.4
@@ -59,7 +64,9 @@ drawCurve precision crv = do
 
 drawSurface :: S.Surface -> IO ()
 drawSurface srf = do 
-    GL.color $ GL.Color3 (0.0 :: GL.GLdouble) 0.0 0.0
+    if isBezier srf 
+    then GL.color $ GL.Color3 (0.0 :: GL.GLdouble) 0.0 0.0
+    else GL.color $ GL.Color3 (0.0 :: GL.GLdouble) 0.7 0.2
     let pts1 = S.subdivideIsocrv S.U 0.0 8 srf 
     GL.lineWidth GL.$= 2.0
     GL.renderPrimitive GL.LineStrip $

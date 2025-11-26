@@ -7,6 +7,8 @@ import Control.Monad (unless, when)
 import qualified Graphics.Rendering.OpenGL as GL
 import Prelude hiding (init)
 import Data.IORef
+import Control.Monad.Writer (runWriterT)
+import Data.Functor.Identity (Identity(..), runIdentity)
 
 import qualified Drawing as D
 import qualified Scene as SC
@@ -33,10 +35,9 @@ launchWindow = do
           rotView <- newIORef mkRotationView
           setKeyCallback win (Just (keyHandler rotView))
               
-          sceneIges <- SC.openIGES SC.fileLocation
-          let scene = SC.fromIgesSceneToScene sceneIges
-          putStrLn $ "Surface128parserfaces to draw: " 
-                   <> show (length $ SC.srfs scene)
+          igesScene <- SC.openIGES SC.fileLocation
+
+          scene <- SC.fromIgesSceneToScene igesScene
 
           setupOrtho 800 600 -- initial ortho cube
           appLoop win scene rotView 
