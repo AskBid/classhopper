@@ -4,13 +4,27 @@ module Geometry.File.IGES.RunIgesReader
   ( getIgesEntities
   ) where 
 
-import Text.Parsec (runParser, ParseError)
+import Text.Parsec 
+  ( runParser
+  , ParseError
+  )
 import Text.Parsec.Pos (initialPos)
-import Text.Parsec.Error (newErrorMessage, Message(..), errorMessages, messageString)
+import Text.Parsec.Error 
+  ( newErrorMessage
+  , Message(..)
+  , errorMessages
+  , messageString
+  )
 import Data.Default
 import qualified Data.Text as T
 import Control.Monad.IO.Class (liftIO)
 import Data.Maybe (catMaybes)
+import RIO 
+  ( logInfo
+  , logError
+  , displayShow
+  , display
+  ) 
 
 import Geometry.File.IGES.BuilderIgesRaw (readIGESfile, buildIgesRaw)
 import Geometry.File.IGES.BuilderDirectory (buildDEs)
@@ -18,7 +32,7 @@ import Geometry.File.IGES.BuilderParameter (formatParameter)
 import Geometry.File.IGES.ParameterParser (surface128parser)
 import Geometry.File.IGES.TypeEntity
 import Geometry.File.IGES.Type
-import Geometry.File.TranslatorAppType (Env, TranslatorApp(..), logInfo)
+import Geometry.File.TranslatorAppType (TranslatorApp(..))
 
 -----------
 -- SCHEMA
@@ -37,18 +51,18 @@ getIgesEntities
   :: FilePath 
   -> TranslatorApp [Surface128data]
 getIgesEntities location = do 
-  logInfo $ "Reading IGES file: " <> T.pack location
+  logInfo $ "Reading IGES file: " <> displayShow location
   rawLines <- liftIO $ readIGESfile location
-  logInfo $ "Loaded " <> T.pack (show (length rawLines)) <> " raw lines"
+  logInfo $ "Loaded " <> displayShow (length rawLines) <> " raw lines"
   let igs = buildIgesRaw rawLines
   logInfo "Built raw IGES map"
   des <- catMaybes <$> buildDEs igs
-  logInfo $ "Found " <> T.pack (show (length des)) <> " IGES directory entries"
+  logInfo $ "Found " <> displayShow (length des) <> " IGES directory entries"
   eParams <- mapM (fishParameterFromDE igs) des
   logInfo "Finished IGES parameter parsing."
   let params = onlyRights eParams
-  logInfo $ "Attempted " <> T.pack (show (length eParams)) <> " parameters parsing"
-  logInfo $ "Successful parsings: " <> T.pack (show (length params))
+  logInfo $ "Attempted " <> displayShow (length eParams) <> " parameters parsing"
+  logInfo $ "Successful parsings: " <> displayShow (length params)
   return params
 
 fishParameterFromDE 
@@ -59,14 +73,15 @@ fishParameterFromDE igs de = do
   let mP = formatParameter (pointerP de) (countPlines de) igs
   case mP of
     Nothing  -> do 
-      let err = "Missing parameter text block."
-      logInfo err
+      let err = "Missing parameter text block." :: T.Text
+      -- importing RIO everything becomes Utf8Builder
+      logError $ display err
       return $ Left (toParseError $ T.unpack err)
     Just p   -> do 
       let parseResult = runParser surface128parser def "" p
       case parseResult of 
         Left err -> do 
-          mapM_ (logInfo . T.pack . messageString) $ errorMessages err
+          mapM_ (logInfo . displayShow . messageString) $ errorMessages err
           return $ Left err
         Right ent -> return $ Right ent
 

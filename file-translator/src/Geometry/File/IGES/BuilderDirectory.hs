@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
--- {-# LANGUAGE LambdaCase        #-}
+-- {-# LANGUAGE NoImplicitPrelude #-}
 
 module Geometry.File.IGES.BuilderDirectory where
 
@@ -12,11 +12,12 @@ import Data.List (foldl')
 import Data.Char (isDigit)
 import Text.Read (readMaybe)
 import Control.Monad (when, join)
+import RIO (logInfo, logError, logWarn, displayShow)
 
 import Geometry.File.IGES.Type (ckEntityType, IgesRaw(..), DirEntry(..), Section(..))
 import Geometry.File.IGES.BuilderIgesRaw
 import Geometry.File.IGES.Helper (safeIndex, textToInt)
-import Geometry.File.TranslatorAppType (Env, TranslatorApp(..), logInfo)
+import Geometry.File.TranslatorAppType (TranslatorApp(..))
 
 -- | at the moment is only a list of DEs, but if we will start 
 -- support for composite entities that refer back to DEs, will
@@ -25,7 +26,7 @@ buildDEs :: IgesRaw -> TranslatorApp [Maybe DirEntry]
 buildDEs igs = do 
   let linesDEsection = IM.toList section 
   logInfo $ "Found " 
-          <> T.pack (show (length linesDEsection)) 
+          <> displayShow (length linesDEsection)
           <> " lines in the Directory Entry section of the IGES file."
   sequence $ mapCouples readDirectoryEntry linesDEsection
   where 
@@ -47,27 +48,27 @@ readDirectoryEntry (rowN1, l1) (rowN2, l2) = do
   case deEntityTypeDigit of 
 
     Nothing -> do 
-      logInfo "ERROR! :: EntityType digit was not perceived."
+      logError "EntityType digit was not perceived."
       return Nothing 
 
     Just n  -> do 
-      logInfo $ "EntityType digit reckognised as: " <> T.pack (show n)
+      logInfo $ "EntityType digit reckognised as: " <> displayShow n
       case ckEntityType n of
         Nothing -> do 
-          logInfo "WARNING! :: The EntityType found is not supported." 
+          logWarn "The EntityType found is not supported." 
           return Nothing
         Just e -> do 
-          logInfo $ "Reckognised entity type " <> T.pack (show e) <> "."
+          logInfo $ "Reckognised entity type " <> displayShow e <> "."
           let cellsL2 = chunkText 8 l2
               pointerP = textToInt =<< safeIndex cellsL1 1 
               countOfPlines = textToInt =<< safeIndex cellsL2 3
           case DirEntry rowN1 e <$> pointerP <*> countOfPlines of 
             Nothing -> do 
-              logInfo "ERROR! :: Directory Entry not paramenter pointer or lines count missing!"
+              logError "Directory Entry not paramenter pointer or lines count missing!"
               return Nothing 
             Just de -> do 
               logInfo "Directory entity successfully parsed:"
-              logInfo $ T.pack (show de)
+              logInfo $ displayShow de
               return $ Just de
 
 chunkText :: Int -> T.Text -> [T.Text]

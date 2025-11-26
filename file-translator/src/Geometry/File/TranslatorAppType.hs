@@ -1,31 +1,34 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Geometry.File.TranslatorAppType where
 
-import Control.Monad.Reader
-import Data.Text (Text)
-import qualified Data.Text as T
-import qualified Data.Text.IO as TIO
+import RIO
+import RIO.Text (Text)
+import Text.Parsec.Token (GenLanguageDef(nestedComments))
 
--- Simple environment with a logger function
-newtype Env = Env
-  { logFunc :: Text -> IO () 
+-- LogFunc is just a function that performs logging.
+newtype TranslatorEnv = TranslatorEnv
+  { teLogFunc :: LogFunc
   }
+  -- so RIO gives us this type to which our defined log function needs 
+  -- to comply to.
 
-type TranslatorApp a = ReaderT Env IO a
+-- RIO uses a typeclass to retrieve the LogFunc
+instance HasLogFunc TranslatorEnv where
+  logFuncL = lens teLogFunc (\x y -> x { teLogFunc = y })
+  -- A lens is just a pair of functions:
+  --   Getter – get the value from a record
+  --   Setter – update the value in a record
+  -- Getter: \env -> teLogFunc env 
+  -- ^ gets the logger
+  -- Setter: \env newLog -> env { teLogFunc = newLog }
+  -- ^ updates the logger
+  -- lens :: (s -> a) -> (s -> a -> s) -> Lens' s a 
+  -- s as structure, a as the element inside it
 
--- Logging helper
-logInfo :: Text -> TranslatorApp ()
-logInfo msg = do
-  Env logger <- ask
-  liftIO $ logger msg
-
-logMaybe :: Maybe a -> Text -> Text -> TranslatorApp ()
-logMaybe maybe ok err = do 
-  Env logger <- ask
-  case maybe of
-    Nothing -> liftIO $ logger err
-    Just _  -> liftIO $ logger ok 
+-- | Your application monad is now "RIO TranslatorEnv a"
+-- The monad is RIO, which is just ReaderT env IO with helper functions
+type TranslatorApp a = RIO TranslatorEnv a
+-- newtype RIO env a = RIO {unRIO :: ReaderT env IO a}

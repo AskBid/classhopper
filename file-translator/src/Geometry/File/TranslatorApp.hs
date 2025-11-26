@@ -1,17 +1,18 @@
-module Geometry.File.TranslatorApp where 
+{-# LANGUAGE OverloadedStrings #-}
 
-import Control.Monad.Reader
+module Geometry.File.TranslatorApp where 
 
 import Geometry.File.TranslatorAppType
 import Geometry.File.IGES.RunIgesReader (getIgesEntities)
 import Geometry.File.IGES.TypeEntity (Surface128data)
-import qualified Data.Text as T
+import RIO
 
 openFile :: FilePath -> IO [Surface128data]
 openFile filepath = do 
-  let logger = putStrLn . T.unpack 
-  -- ^ you can change the logger to different types..
-  -- or even \_ -> pure () for not logging at all.
-  let env = Env logger
-  runReaderT (getIgesEntities filepath) env
-
+  logOptions <- logOptionsHandle stdout True
+  let logOptionsNoTime = setLogUseTime False logOptions
+  withLogFunc logOptionsNoTime $ \lf -> do
+    let env = TranslatorEnv lf
+    runRIO env $ do
+      logInfo $ "Opening IGES file..." <> displayShow filepath
+      getIgesEntities filepath
