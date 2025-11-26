@@ -55,6 +55,17 @@ deg5_bfs =
   , (^5)
   ]
 
+deg6_bfs :: [Bernstein]
+deg6_bfs =
+  [ \t -> (1-t)^6 
+  , \t -> 6*t*((1-t)^5)
+  , \t -> (15*(t^2))*((1-t)^4)
+  , \t -> (20*(t^3))*((1-t)^3)
+  , \t -> (15*(t^4))*((1-t)^2)
+  , \t -> (6*(t^5))*(1-t)
+  , (^6)
+  ]
+
 bernsteinSelector :: Int -> Maybe [Bernstein]
 bernsteinSelector = \case 
   1 -> Just deg1_bfs
@@ -62,4 +73,5 @@ bernsteinSelector = \case
   3 -> Just deg3_bfs
   4 -> Just deg4_bfs
   5 -> Just deg5_bfs
+  6 -> Just deg6_bfs
   _ -> Nothing
