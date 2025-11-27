@@ -1,5 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
-
 module Drawing where 
 
 import qualified Graphics.Rendering.OpenGL as GL
@@ -18,7 +16,7 @@ import Scene
 drawing :: Scene -> IO ()
 drawing scene = do 
   drawGlobalAxis 
-  mapM_ (drawCurve 500) $ crvs scene 
+  mapM_ (drawCurve 10) $ crvs scene 
   mapM_ drawSurface $ srfs scene 
 
 isBezier :: S.Surface -> Bool 
@@ -64,6 +62,7 @@ drawCurve precision crv = do
 
 drawSurface :: S.Surface -> IO ()
 drawSurface srf = do 
+    -- print srf
     if isBezier srf 
     then GL.color $ GL.Color3 (0.0 :: GL.GLdouble) 0.0 0.0
     else GL.color $ GL.Color3 (0.0 :: GL.GLdouble) 0.7 0.2

@@ -30,10 +30,17 @@ fileLocation :: FilePath
 -- fileLocation = "../file-translator/iges-examples/NegativeEdgeFix_WiP_220913.igs"
 -- fileLocation = "../file-translator/iges-examples/4Classhopper_trimmed.igs"
 -- fileLocation = "../file-translator/iges-examples/A-Pill_fillet_srfs_fromRhino.igs"
-fileLocation = "../file-translator/iges-examples/A-pill_Classhopper.igs"
+-- fileLocation = "../file-translator/iges-examples/A-pill_Classhopper.igs"
 -- fileLocation = "../file-translator/iges-examples/hp/1srf_5spansU.igs"
 -- fileLocation = "../file-translator/iges-examples/hp/1srf_5spansU8V_trimmed.igs"
--- fileLocation = "../file-translator/iges-examples/saddle.igs"
+fileLocation = "../file-translator/iges-examples/saddle.igs"
+-- fileLocation = "../file-translator/iges-examples/saddlenostitches.igs"
+-- fileLocation = "../file-translator/iges-examples/saddle_stitch2.igs"
+-- fileLocation = "../file-translator/iges-examples/saddle_selected_errors.igs"
+-- fileLocation = "../file-translator/iges-examples/saddle_selected_errors2.igs"
+-- fileLocation = "../file-translator/iges-examples/saddle_selected_errors3.igs"
+-- fileLocation = "../file-translator/iges-examples/saddle_stitch.igs"
+-- fileLocation = "../file-translator/iges-examples/saddle_errors.igs"
 -- fileLocation = "../file-translator/iges-examples/hp/1srf_normal_trimmed.igs"
 -- fileLocation = "../file-translator/iges-examples/221110_Previous IM lights.igs"
 
@@ -50,6 +57,7 @@ newtype SceneFromIGES = SceneFromIGES
 openIGES :: FilePath -> IO SceneFromIGES
 openIGES file = do 
   entities <- openFile file
+  print entities
   return $ SceneFromIGES entities
 
 fromIgesSceneToScene :: SceneFromIGES -> IO Scene
@@ -61,7 +69,7 @@ fromIgesSceneToScene SceneFromIGES{..} = do
     runRIO env $ do
       logInfo "Starting to translate parsed IGES to Classhopper Scene..."
       srfs <- processSceneSurfaces surfaces
-      return $ Scene srfs cs
+      return $ Scene srfs [] --cs
 
 data Scene = Scene 
   { srfs :: [S.Surface]

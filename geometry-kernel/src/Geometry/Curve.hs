@@ -23,7 +23,7 @@ instance Show Curve where
     "Cruve:\n" ++ unlines (map (("  " ++) . show) cvs)
 
 -- | given basis function and a set of points finds the point 
--- on the curve at a certain parameter u/t.
+-- on the curve at a certain parameter t (or called u sometimes)
 evaluatePtCrv :: Curve -> Parameter -> Point3d
 evaluatePtCrv (Curve{..}) t = ptsSummationE weightedPts 
   where 

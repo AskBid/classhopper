@@ -37,33 +37,6 @@ instance Show Surface where
 -- surface if there are enough points to comply with the given U and V degrees.
 -- for each direction, if knots are given calculates the BasisFunc with CoxDeBoor.
 -- TODO : COS is just a dummy pre-defined COS. Not building it from inputs yet.
--- mkBezier
---   :: Degree 
---   -> Degree 
---   -> [Double] 
---   -> Maybe Surface
--- mkBezier degU degV cvs = do 
---   srf <- Surface
---                 <$> bernsteinSelector degU
---                 <*> bernsteinSelector degV
---                 <*> 
---                 <*>
---                 <*> uRows
---                 <*> cos
---   pure $ srf
---   where
---     pts = (\[x,y,z] -> V3 x y z) <$> chunk 3 cvs
---     uRows
---       | length pts >= 4 = Just $ take (degV + 1) $ chunk (degU + 1) pts
---       | otherwise       = Nothing
---     -- ^ Notice it can NOT exist a surface with less than 4 points (plane)
---     cos = Just [COS deg2_bfs [V2 0 0.5, V2 0.5 0.8, V2 1 0.5]]
-
--- filterBezier :: Surface -> Maybe Surface 
--- filterBezier ()                  = Just (Bezier basedata)
--- filterBezier (BSpline basedata Nothing Nothing) = Just (Bezier basedata)
--- filterBezier _ = Nothing
-
 mkBSpline
   :: Degree 
   -> Knots 
@@ -95,7 +68,7 @@ mkBSpline pU ktsU pV ktsV coords =
     cos = Just [COS deg2_bfs [V2 0 0.5, V2 0.5 0.8, V2 1 0.5]]
 
   in do 
-    trace (unlines [ "number of points: " <> (show $ length pts)
+    trace (unlines [ "number of points: " <> show (length pts)
                    , "U degree: " <> show pU 
                    , "V degree: " <> show pV 
                    , "U number of knots: " <> show mU 
@@ -141,7 +114,6 @@ evaluateSrfPt (Surface{..}) (V2 u v) = evaluateSrfPt' cvs uBF_ts vBF_ts
 -- | j=1 | P_01 P_11 P_21 |
 -- ------------------------
 -- sumE_ij (B_i * B_j * P_ij)
---
 evaluateSrfPt' :: [[Point3d]] -> [Double] -> [Double] -> Point3d
 evaluateSrfPt' srfCVs uBerTs_i vBerTs_j  = ptsSummationE $ concat weightedPts
   where 

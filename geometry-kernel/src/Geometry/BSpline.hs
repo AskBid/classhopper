@@ -5,10 +5,12 @@ import Geometry.Type
 import Geometry.Helper
 import Geometry.Point
 import Geometry.Bezier (bernsteinSelector)
+import Geometry.Knot (normalizeKnots)
 
 getBasisFuncs :: Degree -> ParamRep -> Maybe [BasisFunc]
-getBasisFuncs deg Bezier        = bernsteinSelector deg
-getBasisFuncs deg (BSpline kts) = Just $ coxDeBoorUnsafe deg kts
+getBasisFuncs deg Bezier = bernsteinSelector deg
+getBasisFuncs deg (BSpline kts) = 
+  Just $ coxDeBoorUnsafe deg (normalizeKnots kts)
 
 -- | Produces basis functions for a BSpline Curve.
 -- can have check on point count or not(hing).

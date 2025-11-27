@@ -20,3 +20,12 @@ multispan knots
     lastK  = last knots
     middle = init . tail  -- all except first and last
     isInternal k = k > firstK && k < lastK
+
+normalizeKnots :: [Double] -> [Double]
+normalizeKnots ks
+  | null ks          = []
+  | maxK == minK     = replicate (length ks) 0.0
+  | otherwise        = map (\u -> (u - minK) / (maxK - minK)) ks
+  where
+    minK = minimum ks
+    maxK = maximum ks
