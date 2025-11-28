@@ -34,8 +34,11 @@ instance Show Surface where
     "Surface:\n" ++ unlines (map (("  " ++) . show) cvs)
 
 -- From a list of Double, construct a point for every 3 Double, and builds a 
--- surface if there are enough points to comply with the given U and V degrees.
--- for each direction, if knots are given calculates the BasisFunc with CoxDeBoor.
+-- surface if there are enough points to comply with the given U and V degrees 
+-- and UV knot vectors.
+-- For each direction, @multispan@ understands if a direction needs the BasisFunc
+-- calculation with @CoxDeBoor@. @getBasisFuncs@ dispatches the calculation based
+-- on that @ParamRep@ value.
 -- TODO : COS is just a dummy pre-defined COS. Not building it from inputs yet.
 mkBSpline
   :: Degree 
@@ -45,6 +48,7 @@ mkBSpline
   -> [Double] 
   -> Maybe Surface
 mkBSpline pU ktsU pV ktsV coords =
+
   let
     pts = (\[x,y,z] -> V3 x y z) <$> chunk 3 coords
 
@@ -53,8 +57,8 @@ mkBSpline pU ktsU pV ktsV coords =
     nU1 = mU - pU
     nV1 = mV - pV
 
-    ktsU' = multispan ktsU 
-    ktsV' = multispan ktsV
+    ktsUrep = multispan ktsU 
+    ktsVrep = multispan ktsV
     
     uRowsOfPts                     -- :: Maybe [[Point3d]]
       | trace (show $ length pts >= 4) length pts >= 4 =          -- 4 points (plane).
@@ -67,39 +71,13 @@ mkBSpline pU ktsU pV ktsV coords =
     
     cos = Just [COS deg2_bfs [V2 0 0.5, V2 0.5 0.8, V2 1 0.5]]
 
-  in do 
-    trace (unlines [ "number of points: " <> show (length pts)
-                   , "U degree: " <> show pU 
-                   , "V degree: " <> show pV 
-                   , "U number of knots: " <> show mU 
-                   , "V number of knots: " <> show mV
-                   , "U number of points: " <> show nU1
-                   , "V number of points: " <> show nV1
-                   , "ptsU * ptsV = " <> show (nU1 * nV1) 
-                   , "U (m - n - 1) = " <> show (mU - nU1) 
-                   , "V (m - n - 1) = " <> show (mV - nV1) 
-                   , "ktsU': " <> show ktsU'  
-                   , "ktsV': " <> show ktsV'  
-                   , "getBasisFuncs pU ktsU': " <> 
-                        (case getBasisFuncs pU ktsU' of
-                            Nothing -> "NOTHING" 
-                            _ -> "OK")
-                   , "getBasisFuncs pV ktsV': " <>
-                       (case getBasisFuncs pV ktsV' of 
-                            Nothing -> "NOTHING" 
-                            _ -> "OK")
-                   ]) $  
-      Surface <$> getBasisFuncs pU ktsU'
-              <*> getBasisFuncs pV ktsV'
-              <*> Just ktsU' 
-              <*> Just ktsV'
-              <*> uRowsOfPts
-              <*> cos
-
--- mkBSpline :: Degree -> Degree -> [Double] -> (Knots, Knots) -> Maybe Surface
--- mkBSpline degU degV cvs (ktsU, ktsV) = undefined 
---   where 
---     basisFuncsU = coxDeBoor uDeg kts 
+  in 
+    Surface <$> getBasisFuncs pU ktsUrep
+            <*> getBasisFuncs pV ktsVrep
+            <*> Just ktsUrep
+            <*> Just ktsVrep
+            <*> uRowsOfPts
+            <*> cos
 
 evaluateSrfPt :: Surface -> PointUV -> Point3d
 evaluateSrfPt (Surface{..}) (V2 u v) = evaluateSrfPt' cvs uBF_ts vBF_ts 
