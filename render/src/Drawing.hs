@@ -83,22 +83,22 @@ drawGlobalAxis = do
 --     pathLines $ C.subdivideCrv crv precision
 --   GL.lineWidth GL.$= 1.0
 
--- drawSurface :: S.Surface -> IO ()
--- drawSurface srf = do 
---     -- print srf
---     if isBezier srf 
---     then GL.color $ GL.Color3 (0.0 :: GL.GLdouble) 0.0 0.0
---     else GL.color $ GL.Color3 (0.0 :: GL.GLdouble) 0.7 0.2
---     let pts1 = S.subdivideIsocrv S.U 0.0 8 srf 
---     GL.lineWidth GL.$= 2.0
---     GL.renderPrimitive GL.LineStrip $
---       pathLines pts1
---     let pts2 = S.subdivideIsocrv S.U 0.5 8 srf 
---     drawDashedLine pts2
---     let pts3 = S.subdivideIsocrv S.U 1.0 8 srf 
---     GL.lineWidth GL.$= 2.0
---     GL.renderPrimitive GL.LineStrip $
---       pathLines pts3
+drawSurface :: S.Surface -> IO ()
+drawSurface srf = do 
+    -- print srf
+    if isBezier srf 
+    then GL.color $ GL.Color3 (0.0 :: GL.GLdouble) 0.0 0.0
+    else GL.color $ GL.Color3 (0.0 :: GL.GLdouble) 0.7 0.2
+    let pts1 = S.subdivideIsocrv S.U 0.0 8 srf 
+    GL.lineWidth GL.$= 2.0
+    GL.renderPrimitive GL.LineStrip $
+      pathLines pts1
+    let pts2 = S.subdivideIsocrv S.U 0.5 8 srf 
+    drawDashedLine pts2
+    let pts3 = S.subdivideIsocrv S.U 1.0 8 srf 
+    GL.lineWidth GL.$= 2.0
+    GL.renderPrimitive GL.LineStrip $
+      pathLines pts3
     --
     -- let pts4 = S.subdivideIsocrv S.V 0.0 8 srf 
     -- GL.lineWidth GL.$= 2.0
@@ -113,13 +113,13 @@ drawGlobalAxis = do
 
     -- let pts7 = S.evaluateSrfCOSs srf
     -- mapM_ drawCOS pts7
---   where 
---     drawDashedLine :: [P.Point3d] -> IO ()
---     drawDashedLine pts = do
---       GL.lineStipple GL.$= Just (1, 0x00FF)  -- repeat pattern of 16 bits
---       GL.lineWidth GL.$= 1.0
---       GL.renderPrimitive GL.LineStrip $ pathLines pts
---       GL.lineStipple GL.$= Nothing
+  where 
+    drawDashedLine :: [P.Point3d] -> IO ()
+    drawDashedLine pts = do
+      GL.lineStipple GL.$= Just (1, 0x00FF)  -- repeat pattern of 16 bits
+      GL.lineWidth GL.$= 1.0
+      GL.renderPrimitive GL.LineStrip $ pathLines pts
+      GL.lineStipple GL.$= Nothing
 --
 -- drawCOS :: [P.Point3d] -> IO ()
 -- drawCOS pts = do 
