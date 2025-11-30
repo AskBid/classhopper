@@ -99,8 +99,8 @@ evaluateSrfPt' srfCVs uBerTs_i vBerTs_j  = ptsSummationE $ concat weightedPts
     -- ^ feed Row of Pts i
     weightedPts = zipWith parseUrow vBerTs_j srfCVs
 
-subdivideIsocrv :: DirectionUV -> Parameter -> Int -> Surface -> [Point3d]
-subdivideIsocrv uvDir t divisions (Surface{..}) = case uvDir of
+sampleIsocrv :: DirectionUV -> Parameter -> Int -> Surface -> [Point3d]
+sampleIsocrv uvDir t divisions (Surface{..}) = case uvDir of
   U -> evaluateSrfPt' cvs (map ($ t) uBasisFuncs) <$> paramsBerTs vBasisFuncs
   V -> flip (evaluateSrfPt' cvs) (map ($ t) vBasisFuncs) <$> paramsBerTs uBasisFuncs
   where 

@@ -5,6 +5,7 @@ module Interface where
 import Graphics.UI.GLFW
 import Control.Monad (unless, when)
 import qualified Graphics.Rendering.OpenGL as GL
+import Graphics.Rendering.OpenGL (($=))
 import Prelude hiding (init)
 import Data.IORef
 import Control.Monad.Writer (runWriterT)
@@ -12,6 +13,7 @@ import Data.Functor.Identity (Identity(..), runIdentity)
 
 import qualified Drawing as D
 import qualified Scene as SC
+import OpenFile (openIGES, fromIgesSceneToScene)
 
 launchWindow :: IO ()
 launchWindow = do
@@ -35,9 +37,9 @@ launchWindow = do
           rotView <- newIORef mkRotationView
           setKeyCallback win (Just (keyHandler rotView))
               
-          igesScene <- SC.openIGES SC.fileLocation
+          igesScene <- openIGES fileLocation
 
-          scene <- SC.fromIgesSceneToScene igesScene
+          scene <- fromIgesSceneToScene igesScene
 
           setupOrtho 800 600 -- initial ortho cube
           appLoop win scene rotView 
@@ -54,13 +56,13 @@ appLoop window scene rotZRef = do
     GL.clear [GL.ColorBuffer, GL.DepthBuffer]
 
     -- Configure depth testing
-    GL.depthFunc GL.$= Just GL.Less
-    GL.depthMask GL.$= GL.Enabled 
+    GL.depthFunc $= Just GL.Less
+    GL.depthMask $= GL.Enabled 
 
     rotView <- readIORef rotZRef
     setAssonometricView rotView
 
-    D.drawing scene
+    D.render scene
 
     swapBuffers window
     appLoop window scene rotZRef
@@ -71,11 +73,11 @@ setupOrtho width height = do
       zoom = 0.1
       wOrth = fromIntegral width * zoom -- zoom * ratio / 2
       hOrth = fromIntegral height * zoom -- zoom * ratio / 2 
-  GL.matrixMode GL.$= GL.Projection
+  GL.matrixMode $= GL.Projection
   GL.loadIdentity
   -- left, right, bottom, top, near, far
   GL.ortho (-wOrth) wOrth (-hOrth) hOrth (-4000) 4000
-  GL.matrixMode GL.$= GL.Modelview 0
+  GL.matrixMode $= GL.Modelview 0
   GL.loadIdentity
 
 setAssonometricView :: RotationView -> IO ()
@@ -112,5 +114,25 @@ mkRotationView = (0.0, 0.0, 0.0)
 adjustViewportAndProjection :: Window -> Int -> Int -> IO ()
 adjustViewportAndProjection _ winW winH = do
   setupOrtho winW winH
-  GL.viewport GL.$= (GL.Position 0 0,
-                     GL.Size (fromIntegral winW) (fromIntegral winH))
+  GL.viewport $= ( GL.Position 0 0
+                 , GL.Size (fromIntegral winW) (fromIntegral winH)
+                 )
+
+
+fileLocation :: FilePath
+-- fileLocation = "../file-translator/iges-examples/A-pill_Classhopper.igs"
+fileLocation = "../file-translator/iges-examples/saddle.igs"
+-- fileLocation = "../file-translator/iges-examples/NegativeEdgeFix_WiP_220913.igs"
+-- fileLocation = "../file-translator/iges-examples/4Classhopper_trimmed.igs"
+-- fileLocation = "../file-translator/iges-examples/A-Pill_fillet_srfs_fromRhino.igs"
+-- fileLocation = "../file-translator/iges-examples/hp/1srf_5spansU.igs"
+-- fileLocation = "../file-translator/iges-examples/hp/1srf_5spansU8V_trimmed.igs"
+-- fileLocation = "../file-translator/iges-examples/saddlenostitches.igs"
+-- fileLocation = "../file-translator/iges-examples/saddle_stitch2.igs"
+-- fileLocation = "../file-translator/iges-examples/saddle_selected_errors.igs"
+-- fileLocation = "../file-translator/iges-examples/saddle_selected_errors2.igs"
+-- fileLocation = "../file-translator/iges-examples/saddle_selected_errors3.igs"
+-- fileLocation = "../file-translator/iges-examples/saddle_stitch.igs"
+-- fileLocation = "../file-translator/iges-examples/saddle_errors.igs"
+-- fileLocation = "../file-translator/iges-examples/hp/1srf_normal_trimmed.igs"
+-- fileLocation = "../file-translator/iges-examples/221110_Previous IM lights.igs"

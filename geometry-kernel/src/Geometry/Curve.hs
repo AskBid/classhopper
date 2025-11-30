@@ -30,8 +30,8 @@ evaluatePtCrv (Curve{..}) t = ptsSummationE weightedPts
     uBF_ts = map ($ t) uBasisFuncs
     weightedPts = zipWith (*^) uBF_ts cvs
 
-subdivideCrv :: Curve -> Int -> [Point3d]
-subdivideCrv crv divisions =
+sampleCrv :: Curve -> Int -> [Point3d]
+sampleCrv crv divisions =
   let 
     divs = toEnum divisions
     params = (/divs) <$> [0..divs]
