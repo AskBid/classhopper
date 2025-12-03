@@ -9,7 +9,8 @@ import Foreign.Marshal.Array (withArray)
 import Shader.Common (ShaderProgram)
 
 data RenderContext = RenderContext
-  { rcShaderProgram :: ShaderProgram
+  { rcCurveShader       :: ShaderProgram
+  , rcDashedCurveShader :: ShaderProgram
   , rcMVPMatrix     :: M44 Float
   , rcViewportSize  :: (Int, Int)
   }

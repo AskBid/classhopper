@@ -1,5 +1,4 @@
-{-# LANGUAGE RecordWildCards       #-}
-
+-- {-# DEPRECATED messao #-}
 module Drawing where 
 
 import qualified Graphics.Rendering.OpenGL as GL
@@ -10,31 +9,31 @@ import qualified Geometry.Surface as S
 import qualified Geometry.Point as P
 import Geometry.Type
 
-import Linear.V3
-import Data.Maybe (fromMaybe)
-import Data.Map (toList)
-import Control.Monad (forM_, mapM_)
-
-import Scene
-
-render :: Scene -> IO ()
-render scene = do 
-  GL.clear [GL.ColorBuffer, GL.DepthBuffer]
-  renderSurfaces scene
-  -- renderCurves scene
-  return ()
-
-renderSurfaces :: Scene -> IO ()
-renderSurfaces scene = do
-  let cachedSrfs = toList $ cachedSRFS scene
-  mapM_ (renderSurface . snd) cachedSrfs
-
-renderSurface :: CachedSurface -> IO ()
-renderSurface CachedSurface{..} = do
-  forM_ csBorders $ \CachedCurve{..} -> do
-    GL.bindVertexArrayObject $= Just ccVAO
-    GL.drawArrays GL.LineStrip 0 ccVertexCount
-  GL.bindVertexArrayObject $= Nothing
+-- import Linear.V3
+-- import Data.Maybe (fromMaybe)
+-- import Data.Map (toList)
+-- import Control.Monad (forM_, mapM_)
+--
+-- import Scene
+--
+-- render :: Scene -> IO ()
+-- render scene = do 
+--   GL.clear [GL.ColorBuffer, GL.DepthBuffer]
+--   renderSurfaces scene
+--   -- renderCurves scene
+--   return ()
+--
+-- renderSurfaces :: Scene -> IO ()
+-- renderSurfaces scene = do
+--   let cachedSrfs = toList $ cachedSRFS scene
+--   mapM_ (renderSurface . snd) cachedSrfs
+--
+-- renderSurface :: CachedSurface -> IO ()
+-- renderSurface CachedSurface{..} = do
+--   forM_ csBorders $ \CachedCurve{..} -> do
+--     GL.bindVertexArrayObject $= Just ccVAO
+--     GL.drawArrays GL.LineStrip 0 ccVertexCount
+--   GL.bindVertexArrayObject $= Nothing
 
 isBezier :: S.Surface -> Bool 
 isBezier (S.Surface _ _ Bezier Bezier _ _) = True

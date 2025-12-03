@@ -16,17 +16,18 @@ import Linear.V3
 import Linear.Projection (ortho)
 import Linear.Quaternion (Quaternion, axisAngle)
 
-import qualified Drawing as D
+-- import qualified Drawing as D
 import qualified Scene as SC
 import OpenFile (openIGES, fromIgesSceneToScene)
-import Shader.Curve (loadCurveShaders)
+import Shader.Curve (loadCurveShader, loadDashedCurveShader)
 import Shader.Common (ShaderProgram(..))
 import Render.Common (RenderContext(..))
 import Render.Scene
 
 -- | ShaderProgram could become plural in the future
 data AppState = AppState
-  { asShaderProgram :: ShaderProgram
+  { asCurveShader       :: ShaderProgram
+  , asDashedCurveShader :: ShaderProgram
   , asRotationView  :: IORef RotationView
   , asZoom          :: IORef Float
   , asWindowSize    :: IORef (Int, Int)
@@ -75,13 +76,19 @@ launchWindow = do
           -- set initial viewport (the GL canvas).
           setupOpenGLopaque
 
-          curveShaderProgram <- loadCurveShaders 
+          curveShaderProgram <- loadCurveShader 
             "shaders/curve.vert"
             "shaders/curve.geom"
             "shaders/curve.frag"
 
+          dashedCurveShaderProgram <- loadDashedCurveShader
+            "shaders/curve.vert"
+            "shaders/curve_dashed.geom"
+            "shaders/curve_dashed.frag"
+
           let appState = AppState
-                { asShaderProgram = curveShaderProgram
+                { asCurveShader       = curveShaderProgram
+                , asDashedCurveShader = dashedCurveShaderProgram
                 , asRotationView  = rotViewRef
                 , asZoom          = zoomRef
                 , asWindowSize    = sizeRef
@@ -112,7 +119,8 @@ appLoop window AppState{..} = do
 
     let mvpMatrix = buildMVPMatrix rotView zoom width height
         ctx = RenderContext
-                { rcShaderProgram = asShaderProgram
+                { rcCurveShader = asCurveShader
+                , rcDashedCurveShader = asDashedCurveShader 
                 , rcMVPMatrix = mvpMatrix
                 , rcViewportSize = (width, height)
         }
@@ -164,8 +172,10 @@ buildMVPMatrix :: RotationView -> Float -> Int -> Int -> M44 Float
 buildMVPMatrix rotation zoom width height = 
   model !*! view !*! projection
   where
-    wOrth = fromIntegral width * zoom
-    hOrth = fromIntegral height * zoom
+    ratioWoH = toEnum width / toEnum height :: Float
+    dimension = 100 * zoom :: Float
+    wOrth = dimension
+    hOrth = dimension / ratioWoH
     -- zRange = max wOrth hOrth
     projection = ortho (-wOrth) wOrth (-hOrth) hOrth (-4000) 4000
     view = mkTransformation (buildRotation rotation) (V3 0 0 0)

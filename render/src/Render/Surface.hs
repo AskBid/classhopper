@@ -11,7 +11,7 @@ import Control.Monad (forM_)
 import Render.Common
 import Scene (CachedSurface(..), CachedCurve(..))
 import Shader.Common
-import Render.Curve (renderCurve)
+import Render.Curve (renderCurve, renderDashedCurve)
 import Render.Color
 
 renderSurfaceBezier
@@ -23,4 +23,4 @@ renderSurfaceBezier ctx CachedSurface{..} color = do
   forM_ csBorders $ \curve -> 
     renderCurve ctx curve 3 color
   forM_ csIsoCrvs $ \curve -> 
-    renderCurve ctx curve 1 color
+    renderDashedCurve ctx curve 1 10 10 color
