@@ -50,6 +50,7 @@ data CachedSurface = CachedSurface
   { csId      :: ObjectId
   , csBorders :: [CachedCurve]
   , csIsoCrvs :: [CachedCurve]
+  -- , csSpanIsos :: [CachedCurve]
   }
 
 data Scene = Scene
