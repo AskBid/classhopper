@@ -52,3 +52,6 @@ mkBSpline p kts coords =
            <*> if length pts == n1 
                then Just pts 
                else Nothing
+
+mkNURBS :: Curve -> [Double] -> Maybe Curve
+mkNURBS _ _ = undefined

@@ -6,6 +6,12 @@ import Linear.Vector (zero, (^+^), Additive)
 
 -- | thought to be the Control Point coordinates
 type Point3d = V3 Double
+
+data Point3dW = Point3dW 
+  { pt :: Point3d
+  , w  :: Double 
+  }
+
 type PointUV = V2 Double
 
 ptsSummationE :: (Additive f, Num a) => [f a] -> f a

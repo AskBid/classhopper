@@ -3,7 +3,13 @@
 Ascendant in complexity, descendant in purity.
 
 ```
-Bezier -> BSpline -> NURBS
+Bezier -> BSpline -> RationalBezier -> NURBS
 
-no spans, no weights -> spans, no weights -> spans and weights
+   Bezier         = N spans, N weights 
+-> BSpline        = Y spans, N weights 
+-> RationalBezier = N spans, Y weights
+-> NURBS          = Y spans, Y weights
 ```
+
+# TODOs
+[ ] Make safe `head` and `tail` helpers. (used in Knot)

@@ -2,9 +2,8 @@
 
 module Geometry.Surface where
 
-import Geometry.Type (Knots, BasisFunc, Degree, ParamRep)
+import Geometry.Type (Knots, BasisFunc, Degree, ParamRep (BSpline))
 import Geometry.Bezier (bernsteinSelector, deg2_bfs)
-import Geometry.Curve
 import Geometry.COS
 import Geometry.Point
 import Geometry.Helper
@@ -20,18 +19,22 @@ import Debug.Trace
 
 data DirectionUV = U | V
 
+data CVS 
+  = Irrational [[Point3d]]
+  | Rational [[Point3dW]]
+
 data Surface = Surface
   { uBasisFuncs :: [BasisFunc]
   , vBasisFuncs :: [BasisFunc]
   , uRep        :: ParamRep
   , vRep        :: ParamRep
-  , cvs         :: [[Point3d]]
+  , cvs         :: CVS
   , cos         :: [COS]
   }
 
-instance Show Surface where 
-  show Surface{..} = 
-    "Surface:\n" ++ unlines (map (("  " ++) . show) cvs)
+-- instance Show Surface where
+--   show Surface{..} = 
+--     "Surface:\n" ++ unlines (map (("  " ++) . show) cvs)
 
 -- From a list of Double, construct a point for every 3 Double, and builds a 
 -- surface if there are enough points to comply with the given U and V degrees 
@@ -40,12 +43,13 @@ instance Show Surface where
 -- calculation with @CoxDeBoor@. @getBasisFuncs@ dispatches the calculation based
 -- on that @ParamRep@ value.
 -- TODO : COS is just a dummy pre-defined COS. Not building it from inputs yet.
+-- TODO make Either String Surface w/ errors
 mkBSpline
-  :: Degree 
-  -> Knots 
-  -> Degree 
-  -> Knots 
-  -> [Double] 
+  :: Degree
+  -> Knots
+  -> Degree
+  -> Knots
+  -> [Double]
   -> Maybe Surface
 mkBSpline pU ktsU pV ktsV coords =
 
@@ -61,9 +65,9 @@ mkBSpline pU ktsU pV ktsV coords =
     ktsVrep = multispan ktsV
     
     uRowsOfPts                     -- :: Maybe [[Point3d]]
-      | trace (show $ length pts >= 4) length pts >= 4 =          -- 4 points (plane).
+      | length pts >= 4 =          -- 4 points (plane).
           if length matrix == nV1 
-          then Just matrix 
+          then Just $ Irrational matrix 
           else Nothing
       | otherwise = Nothing
       where 
@@ -79,25 +83,74 @@ mkBSpline pU ktsU pV ktsV coords =
             <*> uRowsOfPts
             <*> cos
 
+-- | Create a @mkBSpline@ first, then you can add weights 
+-- transforming the BSpline into a NURBS.
+-- TODO make Either String Surface w/ errors
+mkNURBS :: Surface -> [Double] -> Maybe Surface
+mkNURBS srf@Surface{cvs = Irrational pts, ..} weights = do 
+  let uLength = length uBasisFuncs
+      vLength = length vBasisFuncs
+      wMatrix = chunk uLength weights
+
+  if   uLength * vLength /= length weights || length wMatrix /= vLength
+  then Nothing
+  else do 
+    let newCVS = zipMatrix pts wMatrix
+        newSrf = srf { cvs = Rational newCVS }
+    return newSrf
+  where 
+    zipMatrix :: [[Point3d]] -> [[Double]] -> [[Point3dW]]
+    zipMatrix = zipWith $ zipWith Point3dW
+mkNURBS _ _ = Nothing
+
+
+
+-- | scale/modulate the parameter with each BasisFuncs 
+-- in both directions for each UV componenet.
+-- Giving a list of i.e. tsEvalByBFu -> which are then 
+-- going to scale/modulate each ControlPoint and be 
+-- summated(E) by @evaluateSrfPt'@
 evaluateSrfPt :: Surface -> PointUV -> Point3d
-evaluateSrfPt (Surface{..}) (V2 u v) = evaluateSrfPt' cvs uBF_ts vBF_ts 
+evaluateSrfPt Surface{..} (V2 u v) = 
+  evaluateSrfPt' cvs tsEvalByBFu tsEvalByBFv 
   where
-    uBF_ts = map ($ u) uBasisFuncs
-    vBF_ts = map ($ v) vBasisFuncs 
+    -- [N_i,p(t)]
+    tsEvalByBFu = map ($ u) uBasisFuncs
+    tsEvalByBFv = map ($ v) vBasisFuncs 
 
 -- ------------------------
--- |     |  i=0  i=1  i=2 |
+-- |     |  i=0  i=1  i=2 |  i is U index
 -- |-----|-----------------
--- | j=0 | P_00 P_10 P_20 |
+-- | j=0 | P_00 P_10 P_20 |  j is V index 
 -- | j=1 | P_01 P_11 P_21 |
 -- ------------------------
 -- sumE_ij (B_i * B_j * P_ij)
-evaluateSrfPt' :: [[Point3d]] -> [Double] -> [Double] -> Point3d
-evaluateSrfPt' srfCVs uBerTs_i vBerTs_j  = ptsSummationE $ concat weightedPts
+-- it modulates/scale each ControlPoint via a Matrix of corresponding
+-- evaluated UV components for each corresponding BasisFunc. 
+-- then summate(E) each of them to find the evaluated Point.
+-- it is basically *nested* summations: 
+-- S(u,v) = Σᵢ Σⱼ [Nᵢ,ₚ(u) * Mⱼ,q(v) * Pᵢ,ⱼ]
+evaluateSrfPt' :: CVS -> [Double] -> [Double] -> Point3d
+
+evaluateSrfPt' (Irrational pts) tsEvalByBFu tsEvalByBFv = 
+  ptsSummationE $ concat modulatePts
+  where
+    modulateUrow :: Double -> ([Point3d] -> [Point3d])
+    modulateUrow tEvalByBFv_j = zipWith (*^) ((* tEvalByBFv_j) <$> tsEvalByBFu) 
+    -- ^ (*^) :: 0.5 -> V3 1.0 3.3 4.0 -> V3 0.5 1.7 2.0 
+    modulatePts = zipWith modulateUrow tsEvalByBFv pts
+
+evaluateSrfPt' (Rational ptsW) tsEvalByBFu tsEvalByBFv = 
+  ptsSummationE $ concat weightPts
   where 
-    parseUrow vBerT_j = zipWith (*^) ((* vBerT_j) <$> uBerTs_i) 
-    -- ^ feed Row of Pts i
-    weightedPts = zipWith parseUrow vBerTs_j srfCVs
+    weightPt :: Double -> Point3dW -> Point3d 
+    weightPt bfNi (Point3dW{..}) = (bfNi * w) *^ pt
+    -- note: difference between @tEvalByBFv_j@ and @tsEvalByBFv@ (+s)
+    weightUrow :: Double -> ([Point3dW] -> [Point3d])
+    weightUrow tEvalByBFv_j = zipWith weightPt ((* tEvalByBFv_j) <$> tsEvalByBFu) 
+    -- 
+    weightPts = zipWith weightUrow tsEvalByBFv ptsW
+
 
 sampleIsocrv :: DirectionUV -> Parameter -> Int -> Surface -> [Point3d]
 sampleIsocrv uvDir t divisions (Surface{..}) = case uvDir of
