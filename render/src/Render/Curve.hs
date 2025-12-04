@@ -68,7 +68,12 @@ renderDashedCurve
   -> Float
   -> Color 
   -> IO ()
-renderDashedCurve RenderContext{..} CachedCurve{..} thickness dashLength gapLength (Color rgba) = do
+renderDashedCurve RenderContext{..} 
+                  CachedCurve{..} 
+                  thickness 
+                  dashLength 
+                  gapLength 
+                  (Color rgba) = do
   let ShaderProgram prog shadersVariables = rcDashedCurveShader
   
   GL.currentProgram $= Just prog

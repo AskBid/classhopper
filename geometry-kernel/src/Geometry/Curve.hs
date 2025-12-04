@@ -38,6 +38,8 @@ sampleCrv crv divisions =
   in 
     evaluatePtCrv crv <$> params
 
+-- | takes in either a bezier or bspline and sorts them while 
+-- creating them.
 mkBSpline :: Degree -> Knots -> [Double] -> Maybe Curve
 mkBSpline p kts coords = 
   let

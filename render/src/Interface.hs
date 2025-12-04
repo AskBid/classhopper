@@ -217,8 +217,8 @@ scrollHandler zoomRef _ _ yoffset = modifyIORef zoomRef (+ realToFrac yoffset)
 -- TEMP
 ----------
 fileLocation :: FilePath
-fileLocation = "../file-translator/iges-examples/A-pill_Classhopper.igs"
--- fileLocation = "../file-translator/iges-examples/saddle.igs"
+-- fileLocation = "../file-translator/iges-examples/A-pill_Classhopper.igs"
+fileLocation = "../file-translator/iges-examples/saddle.igs"
 -- fileLocation = "../file-translator/iges-examples/NegativeEdgeFix_WiP_220913.igs"
 -- fileLocation = "../file-translator/iges-examples/4Classhopper_trimmed.igs"
 -- fileLocation = "../file-translator/iges-examples/A-Pill_fillet_srfs_fromRhino.igs"

@@ -7,8 +7,13 @@ import Geometry.Point
 import Geometry.Bezier (bernsteinSelector)
 import Geometry.Knot (normalizeKnots)
 
+-- | Dispatches a curves parameters to get the relative 
+-- and appropriate BasisFunctions.
+-- NOTE: valid for surfaces as they are not other than 
+-- crossing/interlacing curves.
 getBasisFuncs :: Degree -> ParamRep -> Maybe [BasisFunc]
-getBasisFuncs deg Bezier = bernsteinSelector deg
+getBasisFuncs deg Bezier = 
+  bernsteinSelector deg
 getBasisFuncs deg (BSpline kts) = 
   Just $ coxDeBoorUnsafe deg (normalizeKnots kts)
 
@@ -17,6 +22,7 @@ getBasisFuncs deg (BSpline kts) =
 coxDeBoorUnsafe :: Degree -> Knots -> [BasisFunc]
 coxDeBoorUnsafe p kts = basisFunctions kts p
 
+-- | this is the one with the check mentioned above.
 coxDeBoorSafe :: Degree -> Knots -> [Point3d] -> Maybe [BasisFunc]
 coxDeBoorSafe p kts pts
   | p < m - n - 1 = Nothing
