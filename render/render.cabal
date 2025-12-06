@@ -12,7 +12,9 @@ library
                   , OpenFile
                   , Shader.Common
                   , Shader.Curve
+                  , Shader.CV
                   , Render.Common
+                  , Render.CV
                   , Render.Curve
                   , Render.Surface
                   , Render.Scene

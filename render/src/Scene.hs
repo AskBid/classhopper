@@ -1,6 +1,8 @@
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE FlexibleInstances     #-}
+-- {-# LANGUAGE AllowAmbiguousTypes   #-}
 
 module Scene where 
 
@@ -19,15 +21,10 @@ import qualified Geometry.Surface as S
 import qualified Geometry.Point as P
 import qualified Geometry.Curve as C
 import Type 
+import qualified Data.IntMap as Map
 
 newtype ObjectId = ObjectId Int 
   deriving (Eq, Ord, Show)
-
-nextId :: IORef Int -> IO ObjectId
-nextId ref = do
-  i <- readIORef ref
-  writeIORef ref (i+1)
-  return (ObjectId i) 
 
 data GeometrySurface = GeometrySurface
   { gsId  :: ObjectId
@@ -53,17 +50,121 @@ data CachedSurface = CachedSurface
   -- , csSpanIsos :: [CachedCurve]
   }
 
+data CachedHulls = CachedHulls
+  { chId    :: ObjectId
+  , chHulls :: [CachedCurve]
+  }
+
+data CachedCVS = CachedCVS 
+  { ccvId   :: ObjectId
+  , ccvVBO  :: GL.BufferObject
+  , ccvVAO  :: GL.VertexArrayObject
+  , ccvVertexCount :: GL.NumArrayIndices
+  }
+
+-- | each srf and crv ids relates to their counterpart 
+-- identical ids in cached-srf and cached-crv
 data Scene = Scene
   { geometrySRFS :: Map ObjectId GeometrySurface
   , geometryCRVS :: Map ObjectId GeometryCurve
   , cachedSRFS   :: Map ObjectId CachedSurface
   , cachedCRVS   :: Map ObjectId CachedCurve
-  -- , idCounterRef :: IORef Int
+  , cachedCVS    :: Map ObjectId CachedCVS
+  , cachedHulls  :: Map ObjectId CachedHulls 
+  , idCounterRef :: IORef Int
   }
 
+zeroScene :: IO Scene
+zeroScene = do
+  ref <- newIORef 0
+  pure Scene
+    { geometrySRFS = empty
+    , geometryCRVS = empty
+    , cachedSRFS   = empty
+    , cachedCRVS   = empty
+    , cachedCVS    = empty
+    , cachedHulls  = empty
+    , idCounterRef = ref
+    }
+
+-- | makes sure every new object inserted in 
+-- Scene has a unique id Int.
+nextId :: IORef Int -> IO ObjectId
+nextId ref = do
+  i <- readIORef ref
+  writeIORef ref (i+1)
+  return (ObjectId i) 
+
 -- | defines how to get the VBO/VAO of a type.
+-- perhaps Tesselate is not most appropriate 
+-- naming for all elements this class it used 
+-- with. But makes sense to me.
 class Tessellatable a cached where
   tessellate :: a -> IO cached
+
+-- | add a geometrical entity to the Scene.
+-- adding its GPU representation too (cached<Geometry>)
+class Stageable a where 
+  addToScene :: a -> Scene -> IO Scene 
+
+deleteAndErase :: ObjectId -> Scene -> Scene
+deleteAndErase id scene@Scene{..} = do 
+  let newGeometryMap = delete id geometryCRVS
+      newCachedMap   = delete id cachedCRVS 
+  scene { geometryCRVS = newGeometryMap
+        , cachedCRVS   = newCachedMap 
+        }
+
+-- | Used to show in the scene a GPU representation 
+-- of the control pooints of a Geometry.
+class GeometryHandle a where 
+  showHandle :: a -> Scene -> IO Scene 
+  -- hideHandle :: a -> Scene -> Scene 
+
+-- | Takes an exisiting GeometrySurface in the Scene 
+-- and add the VBO VAO of the control points - hulls.
+instance GeometryHandle GeometrySurface where 
+  showHandle GeometrySurface{..} scene@Scene{..} = do
+    let pts = concat $ S.getPoints (S.cvs gsDef)
+        vtxs = pts2flattenXYZvertices pts
+    (vbo, vao) <- cacheVBOVAO vtxs 
+    let newCachedCVS = CachedCVS { ccvId = gsId
+                         , ccvVBO = vbo 
+                         , ccvVAO = vao 
+                         , ccvVertexCount = fromIntegral $ length vtxs
+                         }  
+        scene' = scene 
+          { cachedCVS = insert gsId newCachedCVS cachedCVS
+          }
+    -- TODO should add hulls cachedHulls too.
+    pure scene'
+
+instance Stageable S.Surface where 
+  addToScene crv scene@Scene{..} = do
+    objId <- nextId idCounterRef
+    let gs = GeometrySurface objId crv
+        scene' = scene 
+          { geometrySRFS = insert objId gs geometrySRFS
+          }
+    ts <- tessellate gs
+    let scene'' = scene' 
+          { cachedSRFS = insert objId ts cachedSRFS
+          }
+    return scene''
+
+instance Stageable C.Curve where 
+  addToScene crv scene@Scene{..} = do
+    objId <- nextId idCounterRef
+    let gc = GeometryCurve objId crv
+        scene' = scene 
+          { geometryCRVS = insert objId gc geometryCRVS
+          }
+    tc <- tessellate gc
+    let scene'' = scene' 
+          { cachedCRVS = insert objId tc cachedCRVS
+          }
+    return scene''
+
 
 samplingAmount :: Int 
 samplingAmount = 9
@@ -126,12 +227,14 @@ cacheVBOVAO vertices = do
   -- ^ Converts the Haskell [Float] into a contiguous pointer for OpenGL.
   GL.vertexAttribPointer (GL.AttribLocation 0) GL.$=
     (GL.ToFloat, GL.VertexArrayDescriptor 3 GL.Float 0 nullPtr)
-  -- ^ is saying that at attribute location 0 (the position one) (there are 4)
-  -- there is 3 components of Float, 0 tight (because there is no normals 
-  -- or colors or UV, so no other attribute to space each vertex by some spaces) 
+  -- ^ is saying that at attribute location 0 (the position one) 
+  -- (there are 4) there is 3 components of Float, 0 tight 
+  -- (because there is no normals or colors or UV, so no other 
+  -- attribute to space each vertex by some spaces) 
   -- and 0 offset.
-  -- because for instance if you were doing the normal you will give the offset
-  -- of the coordinates first. so a @nullPtr `plusPtr` 12@ as 3 float are 12 bytes.
+  -- because for instance if you were doing the normal you will 
+  -- give the offset of the coordinates first. so a @nullPtr 
+  -- `plusPtr` 12@ as 3 float are 12 bytes.
   GL.vertexAttribArray (GL.AttribLocation 0) GL.$= GL.Enabled
   -- ^ If you don’t enable it, the GPU will ignore it.
   GL.bindVertexArrayObject GL.$= Nothing

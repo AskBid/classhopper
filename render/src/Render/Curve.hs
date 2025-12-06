@@ -60,6 +60,7 @@ renderCurve RenderContext{..} CachedCurve{..} thickness (Color rgba) = do
   GL.drawArrays GL.LineStrip 0 ccVertexCount
   GL.bindVertexArrayObject $= Nothing    -- unbinds / close
 
+
 renderDashedCurve 
   :: RenderContext 
   -> CachedCurve 

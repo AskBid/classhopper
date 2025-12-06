@@ -2,7 +2,12 @@
 
 module Geometry.Surface where
 
-import Geometry.Type (Knots, BasisFunc, Degree, ParamRep (BSpline))
+import Geometry.Type 
+  ( Knots
+  , BasisFunc
+  , Degree
+  , ParamRep (BSpline)
+  )
 import Geometry.Bezier (bernsteinSelector, deg2_bfs)
 import Geometry.COS
 import Geometry.Point
@@ -23,6 +28,10 @@ data CVS
   = Irrational [[Point3d]]
   | Rational [[Point3dW]]
 
+getPoints :: CVS -> [[Point3d]]
+getPoints (Irrational pts) = pts
+getPoints (Rational ptsW)  = (pt <$>) <$> ptsW 
+
 data Surface = Surface
   { uBasisFuncs :: [BasisFunc]
   , vBasisFuncs :: [BasisFunc]
@@ -32,17 +41,24 @@ data Surface = Surface
   , cos         :: [COS]
   }
 
--- instance Show Surface where
---   show Surface{..} = 
---     "Surface:\n" ++ unlines (map (("  " ++) . show) cvs)
+instance Show Surface where
+  show Surface{cvs = Irrational pts, ..} =
+    "BSpline Surface:\n" ++ unlines (map (("  " ++) . show) pts)
+  show Surface{cvs = Rational pts, ..} =
+    "NURBS   Surface:\n" ++ unlines (map (("  " ++) . show) pts)
 
--- From a list of Double, construct a point for every 3 Double, and builds a 
--- surface if there are enough points to comply with the given U and V degrees 
+
+-- From a list of Double, construct a point for every 
+-- 3 Double, and builds a surface if there are enough 
+-- points to comply with the given U and V degrees 
 -- and UV knot vectors.
--- For each direction, @multispan@ understands if a direction needs the BasisFunc
--- calculation with @CoxDeBoor@. @getBasisFuncs@ dispatches the calculation based
+-- For each direction, @multispan@ understands if a 
+-- direction needs the BasisFunc calculation with 
+-- @CoxDeBoor@. 
+-- @getBasisFuncs@ dispatches the calculation based
 -- on that @ParamRep@ value.
--- TODO : COS is just a dummy pre-defined COS. Not building it from inputs yet.
+-- TODO : COS is just a dummy pre-defined COS. 
+-- Not building it from inputs yet.
 -- TODO make Either String Surface w/ errors
 mkBSpline
   :: Degree
@@ -92,7 +108,9 @@ mkNURBS srf@Surface{cvs = Irrational pts, ..} weights = do
       vLength = length vBasisFuncs
       wMatrix = chunk uLength weights
 
-  if   uLength * vLength /= length weights || length wMatrix /= vLength
+  if uLength * vLength /= length weights 
+     || 
+     length wMatrix /= vLength
   then Nothing
   else do 
     let newCVS = zipMatrix pts wMatrix
@@ -125,8 +143,9 @@ evaluateSrfPt Surface{..} (V2 u v) =
 -- | j=1 | P_01 P_11 P_21 |
 -- ------------------------
 -- sumE_ij (B_i * B_j * P_ij)
--- it modulates/scale each ControlPoint via a Matrix of corresponding
--- evaluated UV components for each corresponding BasisFunc. 
+-- it modulates/scale each ControlPoint via a Matrix of 
+-- corresponding evaluated UV components for each 
+-- corresponding BasisFunc. 
 -- then summate(E) each of them to find the evaluated Point.
 -- it is basically *nested* summations: 
 -- S(u,v) = Σᵢ Σⱼ [Nᵢ,ₚ(u) * Mⱼ,q(v) * Pᵢ,ⱼ]
@@ -136,7 +155,8 @@ evaluateSrfPt' (Irrational pts) tsEvalByBFu tsEvalByBFv =
   ptsSummationE $ concat modulatePts
   where
     modulateUrow :: Double -> ([Point3d] -> [Point3d])
-    modulateUrow tEvalByBFv_j = zipWith (*^) ((* tEvalByBFv_j) <$> tsEvalByBFu) 
+    modulateUrow tEvalByBFv_j = 
+      zipWith (*^) ((* tEvalByBFv_j) <$> tsEvalByBFu) 
     -- ^ (*^) :: 0.5 -> V3 1.0 3.3 4.0 -> V3 0.5 1.7 2.0 
     modulatePts = zipWith modulateUrow tsEvalByBFv pts
 
@@ -147,12 +167,18 @@ evaluateSrfPt' (Rational ptsW) tsEvalByBFu tsEvalByBFv =
     weightPt bfNi (Point3dW{..}) = (bfNi * w) *^ pt
     -- note: difference between @tEvalByBFv_j@ and @tsEvalByBFv@ (+s)
     weightUrow :: Double -> ([Point3dW] -> [Point3d])
-    weightUrow tEvalByBFv_j = zipWith weightPt ((* tEvalByBFv_j) <$> tsEvalByBFu) 
+    weightUrow tEvalByBFv_j = 
+      zipWith weightPt ((* tEvalByBFv_j) <$> tsEvalByBFu) 
     -- 
     weightPts = zipWith weightUrow tsEvalByBFv ptsW
 
 
-sampleIsocrv :: DirectionUV -> Parameter -> Int -> Surface -> [Point3d]
+sampleIsocrv 
+  :: DirectionUV 
+  -> Parameter 
+  -> Int 
+  -> Surface 
+  -> [Point3d]
 sampleIsocrv uvDir t divisions (Surface{..}) = case uvDir of
   U -> evaluateSrfPt' cvs (map ($ t) uBasisFuncs) <$> paramsBerTs vBasisFuncs
   V -> flip (evaluateSrfPt' cvs) (map ($ t) vBasisFuncs) <$> paramsBerTs uBasisFuncs

@@ -11,6 +11,7 @@ import Shader.Common (ShaderProgram)
 data RenderContext = RenderContext
   { rcCurveShader       :: ShaderProgram
   , rcDashedCurveShader :: ShaderProgram
+  , rcCVShader          :: ShaderProgram
   , rcMVPMatrix     :: M44 Float
   , rcViewportSize  :: (Int, Int)
   }

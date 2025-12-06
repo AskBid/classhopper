@@ -10,7 +10,7 @@ type Point3d = V3 Double
 data Point3dW = Point3dW 
   { pt :: Point3d
   , w  :: Double 
-  }
+  } deriving Show
 
 type PointUV = V2 Double
 

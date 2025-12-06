@@ -20,6 +20,7 @@ import Linear.Quaternion (Quaternion, axisAngle)
 import qualified Scene as SC
 import OpenFile (openIGES, fromIgesSceneToScene)
 import Shader.Curve (loadCurveShader, loadDashedCurveShader)
+import Shader.CV (loadCVShader)
 import Shader.Common (ShaderProgram(..))
 import Render.Common (RenderContext(..))
 import Render.Scene
@@ -28,6 +29,7 @@ import Render.Scene
 data AppState = AppState
   { asCurveShader       :: ShaderProgram
   , asDashedCurveShader :: ShaderProgram
+  , asCVShader          :: ShaderProgram
   , asRotationView  :: IORef RotationView
   , asZoom          :: IORef Float
   , asWindowSize    :: IORef (Int, Int)
@@ -86,9 +88,15 @@ launchWindow = do
             "shaders/curve_dashed.geom"
             "shaders/curve_dashed.frag"
 
+          cvShaderProgram <- loadCVShader
+            "shaders/curve.vert"
+            "shaders/cv.geom"
+            "shaders/cv.frag"
+
           let appState = AppState
                 { asCurveShader       = curveShaderProgram
                 , asDashedCurveShader = dashedCurveShaderProgram
+                , asCVShader          = cvShaderProgram
                 , asRotationView  = rotViewRef
                 , asZoom          = zoomRef
                 , asWindowSize    = sizeRef
@@ -119,10 +127,11 @@ appLoop window AppState{..} = do
 
     let mvpMatrix = buildMVPMatrix rotView zoom width height
         ctx = RenderContext
-                { rcCurveShader = asCurveShader
+                { rcCurveShader       = asCurveShader
                 , rcDashedCurveShader = asDashedCurveShader 
-                , rcMVPMatrix = mvpMatrix
-                , rcViewportSize = (width, height)
+                , rcCVShader          = asCVShader
+                , rcMVPMatrix         = mvpMatrix
+                , rcViewportSize      = (width, height)
         }
 
     renderScene ctx asScene
@@ -131,10 +140,12 @@ appLoop window AppState{..} = do
     appLoop window AppState{..}
 
 -- Update viewport when window is resized
-adjustViewportAndProjection :: IORef (Int, Int) -> Window -> Int -> Int -> IO ()
+adjustViewportAndProjection 
+  :: IORef (Int, Int) -> Window -> Int -> Int -> IO ()
 adjustViewportAndProjection sizeRef _win winW winH = do
   -- Update the viewport (OpenGL's rendering area)
-  GL.viewport $= (GL.Position 0 0, GL.Size (fromIntegral winW) (fromIntegral winH))
+  let windowSize = GL.Size (fromIntegral winW) (fromIntegral winH)
+  GL.viewport $= (GL.Position 0 0, windowSize)
   -- Store new window size (will be used next frame to rebuild MVP)
   writeIORef sizeRef (winW, winH)
 
@@ -209,16 +220,24 @@ keyHandler rotZRef _win key scancode action _mods =
     rotateDown (RotationView (Deg360 x, y, z)) = 
       RotationView (Deg360 (x-5), y, z)
 
-scrollHandler :: IORef Float -> Window -> Double -> Double -> IO ()
-scrollHandler zoomRef _ _ yoffset = modifyIORef zoomRef (+ realToFrac yoffset)
+scrollHandler 
+  :: IORef Float 
+  -> Window 
+  -> Double 
+  -> Double 
+  -> IO ()
+scrollHandler zoomRef _ _ yoffset = 
+  modifyIORef zoomRef (+ realToFrac (yoffset/5))
 
 
 ----------
 -- TEMP
 ----------
 fileLocation :: FilePath
+-- fileLocation = "../file-translator/iges-examples/irrational_revolve.igs"
+fileLocation = "../file-translator/iges-examples/rational_revolve2.igs"
 -- fileLocation = "../file-translator/iges-examples/A-pill_Classhopper.igs"
-fileLocation = "../file-translator/iges-examples/saddle.igs"
+-- fileLocation = "../file-translator/iges-examples/saddle.igs"
 -- fileLocation = "../file-translator/iges-examples/NegativeEdgeFix_WiP_220913.igs"
 -- fileLocation = "../file-translator/iges-examples/4Classhopper_trimmed.igs"
 -- fileLocation = "../file-translator/iges-examples/A-Pill_fillet_srfs_fromRhino.igs"
