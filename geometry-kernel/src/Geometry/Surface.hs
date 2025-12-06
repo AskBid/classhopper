@@ -39,6 +39,7 @@ data Surface = Surface
   , vRep        :: ParamRep
   , cvs         :: CVS
   , cos         :: [COS]
+  , bbox        :: BBox
   }
 
 instance Show Surface where
@@ -70,7 +71,7 @@ mkBSpline
 mkBSpline pU ktsU pV ktsV coords =
 
   let
-    pts = (\[x,y,z] -> V3 x y z) <$> chunk 3 coords
+    (pts, bbox) = chunkPtsBBox coords
 
     mU = length ktsU - 1
     mV = length ktsV - 1
@@ -98,6 +99,7 @@ mkBSpline pU ktsU pV ktsV coords =
             <*> Just ktsVrep
             <*> uRowsOfPts
             <*> cos
+            <*> Just bbox
 
 -- | Create a @mkBSpline@ first, then you can add weights 
 -- transforming the BSpline into a NURBS.

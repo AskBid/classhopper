@@ -29,7 +29,7 @@ newtype ObjectId = ObjectId Int
 data GeometrySurface = GeometrySurface
   { gsId  :: ObjectId
   , gsDef :: S.Surface
-  }
+  } deriving Show
 
 data GeometryCurve = GeometryCurve
   { gcId  :: ObjectId
@@ -72,6 +72,7 @@ data Scene = Scene
   , cachedCVS    :: Map ObjectId CachedCVS
   , cachedHulls  :: Map ObjectId CachedHulls 
   , idCounterRef :: IORef Int
+  , bbox         :: P.BBox
   }
 
 zeroScene :: IO Scene
@@ -85,6 +86,7 @@ zeroScene = do
     , cachedCVS    = empty
     , cachedHulls  = empty
     , idCounterRef = ref
+    , bbox = P.BBox (V3 0 0 0) (V3 0 0 0)
     }
 
 -- | makes sure every new object inserted in 
@@ -249,3 +251,22 @@ pts2flattenXYZvertices (V3 x y z :pts) =
   double2Float x : 
   double2Float y : 
   double2Float z : pts2flattenXYZvertices pts
+
+findSceneBBox :: [GeometrySurface] -> P.BBox
+findSceneBBox [] = P.BBox (V3 0 0 0) (V3 0 0 0)
+findSceneBBox (srf:srfs) = go srfs (thisBBox srf)
+  where 
+    thisBBox GeometrySurface{gsDef = S.Surface{..}} = bbox
+    
+    go :: [GeometrySurface] -> P.BBox -> P.BBox
+    go [] accBBox = accBBox
+    go (s:rest) accBBox = 
+      let sBBox = thisBBox s
+          combinedBBox = combineBBox accBBox sBBox
+      in go rest combinedBBox
+    
+    combineBBox :: P.BBox -> P.BBox -> P.BBox
+    combineBBox (P.BBox (V3 minX1 minY1 minZ1) (V3 maxX1 maxY1 maxZ1))
+                (P.BBox (V3 minX2 minY2 minZ2) (V3 maxX2 maxY2 maxZ2)) =
+      P.BBox (V3 (min minX1 minX2) (min minY1 minY2) (min minZ1 minZ2))
+             (V3 (max maxX1 maxX2) (max maxY1 maxY2) (max maxZ1 maxZ2))

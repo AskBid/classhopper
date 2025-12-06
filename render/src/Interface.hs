@@ -28,6 +28,8 @@ import Render.Scene
 import Scene (GeometryHandle(showHandle))
 import Render.CV (renderCV)
 import Render.Color
+import Geometry.Point (bboxDiagonal)
+import GHC.Float (double2Float)
 
 -- | ShaderProgram could become plural in the future
 data AppState = AppState
@@ -58,7 +60,7 @@ launchWindow = do
           
           -- IORefs
           rotViewRef <- newIORef mkAxonometricView
-          zoomRef <- newIORef 0.1
+          zoomRef <- newIORef 1
           sizeRef <- newIORef (800, 600)
           
           -- CallBacks
@@ -73,11 +75,14 @@ launchWindow = do
 
           igesScene <- openIGES fileLocation
           scene <- fromIgesSceneToScene igesScene
+          let geomSrfs = elems $ SC.geometrySRFS scene
+              sceneBBox = SC.findSceneBBox geomSrfs
+              scene' = scene { SC.bbox = sceneBBox }
 
           -- take first surface available
           let (id, srf) = head $ toList $ SC.geometrySRFS scene
           -- show Handle of that surface (adds pts to scene)
-          scene' <- SC.showHandle srf scene
+          scene'' <- SC.showHandle srf scene'
 
           GL.depthFunc $= Just GL.Less
           -- ^ **Enables depth testing** - objects closer to the camera 
@@ -102,11 +107,8 @@ launchWindow = do
             "shaders/cv.geom"
             "shaders/cv.frag"
 
-          putStrLn "cvs elements:"
-          let sc = SC.cachedCVS scene'
-          print (length $ SC.cachedCVS scene')
-          let (id, hsc) = head $ toList sc
-          print $ SC.ccvVertexCount hsc
+          putStrLn "Scene BBox:"
+          print $ SC.bbox scene''
 
           let appState = AppState
                 { asCurveShader       = curveShaderProgram
@@ -115,16 +117,17 @@ launchWindow = do
                 , asRotationView  = rotViewRef
                 , asZoom          = zoomRef
                 , asWindowSize    = sizeRef
-                , asScene         = scene'
+                , asScene         = scene''
                 }
+              sceneDiagonal = double2Float $ bboxDiagonal $ SC.bbox scene''
 
-          appLoop win appState
+          appLoop win (sceneDiagonal/2) appState
 
           destroyWindow win
           terminate
 
-appLoop :: Window -> AppState -> IO ()
-appLoop window AppState{..} = do
+appLoop :: Window -> Float -> AppState -> IO ()
+appLoop window sceneDiagonal AppState{..} = do
   shouldClose <- windowShouldClose window
   unless shouldClose $ do
     -- Process all pending window/input events right now, 
@@ -140,7 +143,7 @@ appLoop window AppState{..} = do
     zoom <- readIORef asZoom
     (width, height) <- readIORef asWindowSize
 
-    let mvpMatrix = buildMVPMatrix rotView zoom width height
+    let mvpMatrix = buildMVPMatrix sceneDiagonal rotView zoom width height
         ctx = RenderContext
                 { rcCurveShader       = asCurveShader
                 , rcDashedCurveShader = asDashedCurveShader 
@@ -150,11 +153,9 @@ appLoop window AppState{..} = do
         }
 
     renderScene ctx asScene
-    -- (vbo, vao) <- SC.cacheVBOVAO [0, 0, 0.0]
-    -- renderCV ctx (SC.CachedCVS (SC.ObjectId 30) vbo vao 1) 3 3 blue
 
     swapBuffers window
-    appLoop window AppState{..}
+    appLoop window sceneDiagonal AppState{..}
 
 -- Update viewport when window is resized
 adjustViewportAndProjection 
@@ -196,12 +197,12 @@ mkTopDownView = RotationView (Deg360 0, Deg360 0, Deg360 0)
 mkFrontView :: RotationView
 mkFrontView = RotationView (Deg360 90, Deg360 0, Deg360 0)
 
-buildMVPMatrix :: RotationView -> Float -> Int -> Int -> M44 Float
-buildMVPMatrix rotation zoom width height = 
+buildMVPMatrix :: Float -> RotationView -> Float -> Int -> Int -> M44 Float
+buildMVPMatrix bboxDiagonal rotation zoom width height = 
   model !*! view !*! projection
   where
     ratioWoH = toEnum width / toEnum height :: Float
-    dimension = 100 * zoom :: Float
+    dimension = bboxDiagonal * zoom :: Float
     wOrth = dimension
     hOrth = dimension / ratioWoH
     -- zRange = max wOrth hOrth
@@ -252,11 +253,11 @@ scrollHandler zoomRef _ _ yoffset =
 ----------
 fileLocation :: FilePath
 -- fileLocation = "../file-translator/iges-examples/irrational_revolve.igs"
-fileLocation = "../file-translator/iges-examples/rational_revolve.igs"
+-- fileLocation = "../file-translator/iges-examples/rational_revolve.igs"
 -- fileLocation = "../file-translator/iges-examples/rational_revolve2.igs"
 -- fileLocation = "../file-translator/iges-examples/A-pill_Classhopper.igs"
 -- fileLocation = "../file-translator/iges-examples/saddle.igs"
--- fileLocation = "../file-translator/iges-examples/NegativeEdgeFix_WiP_220913.igs"
+fileLocation = "../file-translator/iges-examples/NegativeEdgeFix_WiP_220913.igs"
 -- fileLocation = "../file-translator/iges-examples/4Classhopper_trimmed.igs"
 -- fileLocation = "../file-translator/iges-examples/A-Pill_fillet_srfs_fromRhino.igs"
 -- fileLocation = "../file-translator/iges-examples/hp/1srf_5spansU.igs"

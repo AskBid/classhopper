@@ -35,9 +35,9 @@ import Geometry.Type
 --     GL.drawArrays GL.LineStrip 0 ccVertexCount
 --   GL.bindVertexArrayObject $= Nothing
 
-isBezier :: S.Surface -> Bool 
-isBezier (S.Surface _ _ Bezier Bezier _ _) = True
-isBezier _ = False
+-- isBezier :: S.Surface -> Bool 
+-- isBezier (S.Surface _ _ Bezier Bezier _ _) = True
+-- isBezier _ = False
 
 -- drawGlobalAxis :: IO ()
 --   GL.lineWidth GL.$= 3.0
