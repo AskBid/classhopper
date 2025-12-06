@@ -40,7 +40,7 @@ renderCV RenderContext{..} CachedCVS{..} radius thickness (Color rgba) = do
     Nothing -> return ()
 
   -- Set radius (in pixels)
-  case Map.lookup "radus_px" shadersVariables of
+  case Map.lookup "radius_px" shadersVariables of
     Just locationGpuMem -> 
       GL.uniform locationGpuMem $= (radius :: GL.GLfloat)
     Nothing -> return ()

@@ -161,17 +161,27 @@ evaluateSrfPt' (Irrational pts) tsEvalByBFu tsEvalByBFv =
     modulatePts = zipWith modulateUrow tsEvalByBFv pts
 
 evaluateSrfPt' (Rational ptsW) tsEvalByBFu tsEvalByBFv = 
-  ptsSummationE $ concat weightPts
+  -- using Left Scalar Product to divide the Sigma of all 
+  -- weighted points (and basis func) by the sigma of all 
+  -- basis func weighted
+  (1.0 / weightSumDenominator) *^ numerator
   where 
-    weightPt :: Double -> Point3dW -> Point3d 
-    weightPt bfNi (Point3dW{..}) = (bfNi * w) *^ pt
-    -- note: difference between @tEvalByBFv_j@ and @tsEvalByBFv@ (+s)
-    weightUrow :: Double -> ([Point3dW] -> [Point3d])
+    -- Compute basis * weight for each control point
+    -- returns both basis * weight and basis * weight * pt
+    weightedBasis :: Double -> Point3dW -> (Double, Point3d)
+    weightedBasis bfNi (Point3dW{..}) = 
+      let bw = bfNi * w
+      in (bw, bw *^ pt)
+    -- Process each row weighting each point.
+    weightUrow :: Double -> [Point3dW] -> [(Double, Point3d)]
     weightUrow tEvalByBFv_j = 
-      zipWith weightPt ((* tEvalByBFv_j) <$> tsEvalByBFu) 
-    -- 
-    weightPts = zipWith weightUrow tsEvalByBFv ptsW
-
+      zipWith weightedBasis ((* tEvalByBFv_j) <$> tsEvalByBFu)
+    -- goes through the matrix with the above row processing.
+    allWeightedPts = concat $ zipWith weightUrow tsEvalByBFv ptsW
+    -- Sum the basis * weights (denominator)
+    weightSumDenominator = sum $ fst <$> allWeightedPts
+    -- Sum the basis * weighted points (numerator)
+    numerator = ptsSummationE $ snd <$> allWeightedPts
 
 sampleIsocrv 
   :: DirectionUV 

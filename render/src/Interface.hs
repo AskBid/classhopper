@@ -15,6 +15,7 @@ import Linear.Matrix (M44, identity, (!*!), mkTransformation)
 import Linear.V3 
 import Linear.Projection (ortho)
 import Linear.Quaternion (Quaternion, axisAngle)
+import Data.Map
 
 -- import qualified Drawing as D
 import qualified Scene as SC
@@ -23,7 +24,10 @@ import Shader.Curve (loadCurveShader, loadDashedCurveShader)
 import Shader.CV (loadCVShader)
 import Shader.Common (ShaderProgram(..))
 import Render.Common (RenderContext(..))
-import Render.Scene
+import Render.Scene 
+import Scene (GeometryHandle(showHandle))
+import Render.CV (renderCV)
+import Render.Color
 
 -- | ShaderProgram could become plural in the future
 data AppState = AppState
@@ -70,6 +74,11 @@ launchWindow = do
           igesScene <- openIGES fileLocation
           scene <- fromIgesSceneToScene igesScene
 
+          -- take first surface available
+          let (id, srf) = head $ toList $ SC.geometrySRFS scene
+          -- show Handle of that surface (adds pts to scene)
+          scene' <- SC.showHandle srf scene
+
           GL.depthFunc $= Just GL.Less
           -- ^ **Enables depth testing** - objects closer to the camera 
           -- cover objects farther away. @Less@ is the type of formula used.
@@ -93,6 +102,12 @@ launchWindow = do
             "shaders/cv.geom"
             "shaders/cv.frag"
 
+          putStrLn "cvs elements:"
+          let sc = SC.cachedCVS scene'
+          print (length $ SC.cachedCVS scene')
+          let (id, hsc) = head $ toList sc
+          print $ SC.ccvVertexCount hsc
+
           let appState = AppState
                 { asCurveShader       = curveShaderProgram
                 , asDashedCurveShader = dashedCurveShaderProgram
@@ -100,7 +115,7 @@ launchWindow = do
                 , asRotationView  = rotViewRef
                 , asZoom          = zoomRef
                 , asWindowSize    = sizeRef
-                , asScene         = scene
+                , asScene         = scene'
                 }
 
           appLoop win appState
@@ -135,6 +150,8 @@ appLoop window AppState{..} = do
         }
 
     renderScene ctx asScene
+    -- (vbo, vao) <- SC.cacheVBOVAO [0, 0, 0.0]
+    -- renderCV ctx (SC.CachedCVS (SC.ObjectId 30) vbo vao 1) 3 3 blue
 
     swapBuffers window
     appLoop window AppState{..}
@@ -235,7 +252,8 @@ scrollHandler zoomRef _ _ yoffset =
 ----------
 fileLocation :: FilePath
 -- fileLocation = "../file-translator/iges-examples/irrational_revolve.igs"
-fileLocation = "../file-translator/iges-examples/rational_revolve2.igs"
+fileLocation = "../file-translator/iges-examples/rational_revolve.igs"
+-- fileLocation = "../file-translator/iges-examples/rational_revolve2.igs"
 -- fileLocation = "../file-translator/iges-examples/A-pill_Classhopper.igs"
 -- fileLocation = "../file-translator/iges-examples/saddle.igs"
 -- fileLocation = "../file-translator/iges-examples/NegativeEdgeFix_WiP_220913.igs"

@@ -8,6 +8,7 @@ import Graphics.Rendering.OpenGL (($=))
 
 import Render.Curve
 import Render.Surface
+import Render.CV
 import Render.Common
 import Render.Color
 import Scene
@@ -19,6 +20,8 @@ renderScene ctx Scene{..} = do
     renderSurfaceBezier ctx srf black
   forM_ cachedCRVS $ \crv -> 
     renderCurve ctx crv 1.5 blue
+  forM_ cachedCVS $ \cvs -> 
+    renderCV ctx cvs 10 4 blue
 
 -- | This sets up **global OpenGL rendering STATE**. 
 -- to use before shading transaprent objects (surfaces mesh)
