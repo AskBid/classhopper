@@ -18,18 +18,20 @@ import Linear.Quaternion (Quaternion, axisAngle)
 import Data.Map
 
 -- import qualified Drawing as D
-import qualified Scene as SC
+import qualified Scene.Scene as SC
+import Scene.Class (GeometryHandle(showHandle))
 import OpenFile (openIGES, fromIgesSceneToScene)
 import Shader.Curve (loadCurveShader, loadDashedCurveShader)
 import Shader.CV (loadCVShader)
 import Shader.Common (ShaderProgram(..))
 import Render.Common (RenderContext(..))
 import Render.Scene 
-import Scene (GeometryHandle(showHandle))
 import Render.CV (renderCV)
 import Render.Color
+import Render.WorldRefs (renderWorldRefs)
 import Geometry.Point (bboxDiagonal)
 import GHC.Float (double2Float)
+import Scene.WorldRefs (mkWorldRefs)
 
 -- | ShaderProgram could become plural in the future
 data AppState = AppState
@@ -77,12 +79,16 @@ launchWindow = do
           scene <- fromIgesSceneToScene igesScene
           let geomSrfs = elems $ SC.geometrySRFS scene
               sceneBBox = SC.findSceneBBox geomSrfs
-              scene' = scene { SC.bbox = sceneBBox }
+          -- (axes, grid) <- mkWorldRefs 1 100 -- (bboxDiagonal sceneBBox)
+              scene' = scene 
+                { SC.bbox = sceneBBox 
+                }
+
 
           -- take first surface available
           let (id, srf) = head $ toList $ SC.geometrySRFS scene
           -- show Handle of that surface (adds pts to scene)
-          scene'' <- SC.showHandle srf scene'
+          scene'' <- showHandle srf scene'
 
           GL.depthFunc $= Just GL.Less
           -- ^ **Enables depth testing** - objects closer to the camera 
@@ -106,9 +112,6 @@ launchWindow = do
             "shaders/curve.vert"
             "shaders/cv.geom"
             "shaders/cv.frag"
-
-          putStrLn "Scene BBox:"
-          print $ SC.bbox scene''
 
           let appState = AppState
                 { asCurveShader       = curveShaderProgram
@@ -151,7 +154,7 @@ appLoop window sceneDiagonal AppState{..} = do
                 , rcMVPMatrix         = mvpMatrix
                 , rcViewportSize      = (width, height)
         }
-
+    renderWorldRefs ctx (SC.cachedAxes asScene) (SC.cachedGrid asScene)
     renderScene ctx asScene
 
     swapBuffers window
@@ -255,9 +258,9 @@ fileLocation :: FilePath
 -- fileLocation = "../file-translator/iges-examples/irrational_revolve.igs"
 -- fileLocation = "../file-translator/iges-examples/rational_revolve.igs"
 -- fileLocation = "../file-translator/iges-examples/rational_revolve2.igs"
--- fileLocation = "../file-translator/iges-examples/A-pill_Classhopper.igs"
+fileLocation = "../file-translator/iges-examples/A-pill_Classhopper.igs"
 -- fileLocation = "../file-translator/iges-examples/saddle.igs"
-fileLocation = "../file-translator/iges-examples/NegativeEdgeFix_WiP_220913.igs"
+-- fileLocation = "../file-translator/iges-examples/NegativeEdgeFix_WiP_220913.igs"
 -- fileLocation = "../file-translator/iges-examples/4Classhopper_trimmed.igs"
 -- fileLocation = "../file-translator/iges-examples/A-Pill_fillet_srfs_fromRhino.igs"
 -- fileLocation = "../file-translator/iges-examples/hp/1srf_5spansU.igs"

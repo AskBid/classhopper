@@ -8,17 +8,20 @@ import qualified Data.Map as Map
 import Graphics.Rendering.OpenGL (($=))
 
 import Render.Common
-import Scene (CachedCurve(..))
+import Scene.GPU (CachedCurve(..))
 import Shader.Common
 import Render.Color
 
+data LineRenderType = Lines | LinesStrip
+
 renderCurve 
   :: RenderContext 
+  -> GL.PrimitiveMode
   -> CachedCurve 
   -> Float 
   -> Color 
   -> IO ()
-renderCurve RenderContext{..} CachedCurve{..} thickness (Color rgba) = do
+renderCurve RenderContext{..} mode CachedCurve{..} thickness (Color rgba) = do
   let ShaderProgram prog shadersVariables = rcCurveShader
   
   GL.currentProgram $= Just prog
@@ -57,7 +60,7 @@ renderCurve RenderContext{..} CachedCurve{..} thickness (Color rgba) = do
   
   -- Draw as line strip
   GL.bindVertexArrayObject $= Just ccVAO -- binds / open
-  GL.drawArrays GL.LineStrip 0 ccVertexCount
+  GL.drawArrays mode 0 ccVertexCount
   GL.bindVertexArrayObject $= Nothing    -- unbinds / close
 
 

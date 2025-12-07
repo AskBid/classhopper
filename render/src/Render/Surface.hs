@@ -9,7 +9,7 @@ import Graphics.Rendering.OpenGL (($=))
 import Control.Monad (forM_)
 
 import Render.Common
-import Scene (CachedSurface(..), CachedCurve(..))
+import Scene.GPU (CachedSurface(..), CachedCurve(..))
 import Shader.Common
 import Render.Curve (renderCurve, renderDashedCurve)
 import Render.Color
@@ -21,6 +21,6 @@ renderSurfaceBezier
   -> IO ()
 renderSurfaceBezier ctx CachedSurface{..} color = do
   forM_ csBorders $ \curve -> 
-    renderCurve ctx curve 3 color
+    renderCurve ctx GL.LineStrip curve 3 color
   forM_ csIsoCrvs $ \curve -> 
     renderDashedCurve ctx curve 1 10 10 color

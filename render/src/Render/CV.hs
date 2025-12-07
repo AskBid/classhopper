@@ -8,7 +8,7 @@ import qualified Data.Map as Map
 import Graphics.Rendering.OpenGL (($=))
 
 import Render.Common
-import Scene (CachedCVS(..))
+import Scene.GPU (CachedCVS(..))
 import Shader.Common
 import Render.Color
 

@@ -5,7 +5,6 @@ import Graphics.Rendering.OpenGL (($=))
 import qualified Data.Map as Map
 import qualified Data.ByteString as BS
 
-import Scene 
 import Shader.Common 
   ( ShaderProgram(..)
   , checkShaderCompile

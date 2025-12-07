@@ -5,11 +5,15 @@ build-type:         Simple
 
 library
   exposed-modules:  Interface
-                  , Drawing
-                  , Scene
                   , Type
                   , LogHelper
                   , OpenFile
+                  , Scene.Scene
+                  , Scene.Common
+                  , Scene.GeometryAction
+                  , Scene.GPU
+                  , Scene.Class
+                  , Scene.WorldRefs
                   , Shader.Common
                   , Shader.Curve
                   , Shader.CV
@@ -17,6 +21,7 @@ library
                   , Render.CV
                   , Render.Curve
                   , Render.Surface
+                  , Render.WorldRefs
                   , Render.Scene
                   , Render.Color
   hs-source-dirs:   src

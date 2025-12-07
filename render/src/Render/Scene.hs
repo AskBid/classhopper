@@ -11,7 +11,7 @@ import Render.Surface
 import Render.CV
 import Render.Common
 import Render.Color
-import Scene
+import Scene.Scene
 
 renderScene :: RenderContext -> Scene -> IO ()
 renderScene ctx Scene{..} = do
@@ -19,7 +19,7 @@ renderScene ctx Scene{..} = do
   forM_ cachedSRFS $ \srf -> 
     renderSurfaceBezier ctx srf black
   forM_ cachedCRVS $ \crv -> 
-    renderCurve ctx crv 1.5 blue
+    renderCurve ctx GL.LineStrip crv 1.5 blue
   forM_ cachedCVS $ \cvs -> 
     renderCV ctx cvs 10 4 blue
 

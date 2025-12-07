@@ -27,7 +27,9 @@ import qualified Geometry.Bezier as B
 import Geometry.Surface (mkBSpline)
 import Geometry.Type (ParamRep(..))
 import Type 
-import Scene
+import Scene.Scene
+import Scene.GeometryAction 
+import Scene.Class (addToScene)
 
 -- | to transfer the scene to the Scene in bezier-rnder module.
 newtype SceneFromIGES = SceneFromIGES
