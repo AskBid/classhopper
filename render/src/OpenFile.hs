@@ -106,7 +106,7 @@ processSceneSurfaces srf128s = do
             case rationalSrf of 
               Nothing -> pure Nothing 
               Just nurbs -> do 
-                logInfo $ displayShow nurbs 
+                -- logInfo $ displayShow nurbs 
                 pure $ Just nurbs 
             
 

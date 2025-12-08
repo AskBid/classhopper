@@ -209,7 +209,7 @@ buildMVPMatrix bboxDiagonal rotation zoom width height =
     wOrth = dimension
     hOrth = dimension / ratioWoH
     -- zRange = max wOrth hOrth
-    projection = ortho (-wOrth) wOrth (-hOrth) hOrth (-4000) 4000
+    projection = ortho (-wOrth) wOrth (-hOrth) hOrth (-6000) 6000
     view = mkTransformation (buildRotation rotation) (V3 0 0 0)
     model = identity
     -- Model: Identity (no per-object transform)
@@ -255,10 +255,16 @@ scrollHandler zoomRef _ _ yoffset =
 -- TEMP
 ----------
 fileLocation :: FilePath
+fileLocation = "../file-translator/sample/1srf_normal_trimmed.igs"
+-- fileLocation = "../file-translator/sample/laferrari.igs"
+-- fileLocation = "../file-translator/sample/ClaireGoldsmithSunGlasses.igs"
+-- fileLocation = "../file-translator/sample/acefaceGlasses.igs"
+-- fileLocation = "../file-translator/sample/smokesensor.igs"
+-- fileLocation = "../file-translator/iges-examples/hp/firstSubD_trimmed_model.igs"
 -- fileLocation = "../file-translator/iges-examples/irrational_revolve.igs"
 -- fileLocation = "../file-translator/iges-examples/rational_revolve.igs"
 -- fileLocation = "../file-translator/iges-examples/rational_revolve2.igs"
-fileLocation = "../file-translator/iges-examples/A-pill_Classhopper.igs"
+-- fileLocation = "../file-translator/iges-examples/A-pill_Classhopper.igs"
 -- fileLocation = "../file-translator/iges-examples/saddle.igs"
 -- fileLocation = "../file-translator/iges-examples/NegativeEdgeFix_WiP_220913.igs"
 -- fileLocation = "../file-translator/iges-examples/4Classhopper_trimmed.igs"

@@ -92,7 +92,7 @@ fishParameterFromDE igs de = do
           mapM_ (logInfo . displayShow . messageString) $ errorMessages err
           return $ Left err
         Right ent -> do 
-          logInfo $ displayShow ent
+          -- logInfo $ displayShow ent
           return $ Right ent
 
 toParseError :: String -> ParseError
