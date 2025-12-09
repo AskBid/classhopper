@@ -49,6 +49,7 @@ nix build .#nixGLIntel  # or nixGLNvidia for NVIDIA GPUs
 # Build and run ClassHopper
 cd ../classhopper/
 nix-shell
+cd render
 ../nixGL/result/bin/nixGLIntel cabal run
 ```
 
