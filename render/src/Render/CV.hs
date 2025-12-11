@@ -6,9 +6,10 @@ import Linear.V4
 import qualified Graphics.Rendering.OpenGL as GL
 import qualified Data.Map as Map
 import Graphics.Rendering.OpenGL (($=))
+import Control.Lens
 
 import Render.Common
-import Scene.GPU (CachedCVS(..))
+import Scene.GPU
 import Shader.Common
 import Render.Color
 
@@ -19,7 +20,7 @@ renderCV
   -> Float
   -> Color 
   -> IO ()
-renderCV RenderContext{..} CachedCVS{..} radius thickness (Color rgba) = do
+renderCV RenderContext{..} cvs radius thickness (Color rgba) = do
   let ShaderProgram prog shadersVariables = rcCVShader
   
   GL.currentProgram $= Just prog
@@ -61,7 +62,8 @@ renderCV RenderContext{..} CachedCVS{..} radius thickness (Color rgba) = do
         (realToFrac b :: GL.GLfloat) 
         (realToFrac a :: GL.GLfloat)
     Nothing -> return ()
-  
-  GL.bindVertexArrayObject $= Just ccvVAO
-  GL.drawArrays GL.Points 0 ccvVertexCount  -- GL.Points, not GL.LineStrip!
+
+  GL.bindVertexArrayObject $= Just (cvs ^. gpu . vao)
+  GL.drawArrays GL.Points 0 (cvs ^. gpu . nvxs)  
+  -- ^ GL.Points, not GL.LineStrip!
   GL.bindVertexArrayObject $= Nothing

@@ -6,9 +6,10 @@ import Linear.V4
 import qualified Graphics.Rendering.OpenGL as GL
 import qualified Data.Map as Map
 import Graphics.Rendering.OpenGL (($=))
+import Control.Lens
 
 import Render.Common
-import Scene.GPU (CachedCurve(..))
+import Scene.GPU
 import Shader.Common
 import Render.Color
 
@@ -21,7 +22,7 @@ renderCurve
   -> Float 
   -> Color 
   -> IO ()
-renderCurve RenderContext{..} mode CachedCurve{..} thickness (Color rgba) = do
+renderCurve RenderContext{..} mode curve thickness (Color rgba) = do
   let ShaderProgram prog shadersVariables = rcCurveShader
   
   GL.currentProgram $= Just prog
@@ -57,10 +58,12 @@ renderCurve RenderContext{..} mode CachedCurve{..} thickness (Color rgba) = do
         (realToFrac b :: GL.GLfloat) 
         (realToFrac a :: GL.GLfloat)
     Nothing -> return ()
-  
+    
+  let vaoObj   = curve ^. gpu . vao
+      vertexCnt  = curve ^. gpu . nvxs
   -- Draw as line strip
-  GL.bindVertexArrayObject $= Just ccVAO -- binds / open
-  GL.drawArrays mode 0 ccVertexCount
+  GL.bindVertexArrayObject $= Just vaoObj -- binds / open
+  GL.drawArrays mode 0 vertexCnt
   GL.bindVertexArrayObject $= Nothing    -- unbinds / close
 
 
@@ -72,12 +75,8 @@ renderDashedCurve
   -> Float
   -> Color 
   -> IO ()
-renderDashedCurve RenderContext{..} 
-                  CachedCurve{..} 
-                  thickness 
-                  dashLength 
-                  gapLength 
-                  (Color rgba) = do
+renderDashedCurve 
+  RenderContext{..} curve thickness dashLength gapLength (Color rgba) = do
   let ShaderProgram prog shadersVariables = rcDashedCurveShader
   
   GL.currentProgram $= Just prog
@@ -123,8 +122,11 @@ renderDashedCurve RenderContext{..}
         (realToFrac b :: GL.GLfloat) 
         (realToFrac a :: GL.GLfloat)
     Nothing -> return ()
+
+  let vaoObj   = curve ^. gpu . vao
+      vertexCnt  = curve ^. gpu . nvxs
   
   -- Draw as line strip
-  GL.bindVertexArrayObject $= Just ccVAO -- binds / open
-  GL.drawArrays GL.LineStrip 0 ccVertexCount
+  GL.bindVertexArrayObject $= Just vaoObj -- binds / open
+  GL.drawArrays GL.LineStrip 0 vertexCnt
   GL.bindVertexArrayObject $= Nothing    -- unbinds / close

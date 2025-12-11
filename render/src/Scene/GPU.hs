@@ -1,6 +1,7 @@
-{-# LANGUAGE PartialTypeSignatures #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE DuplicateRecordFields  #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
 
 -- | Probably the base types and operation of Scene 
 -- those are the types and relative operations that 
@@ -12,6 +13,7 @@
 -- buffers.
 module Scene.GPU where 
 
+import Control.Lens
 import Linear.V3
 import qualified Graphics.Rendering.OpenGL as GL
 import Graphics.Rendering.OpenGL (($=))
@@ -23,7 +25,15 @@ import Foreign.Marshal.Array (withArray)
 -- haskell array into contiguous memory. 
 
 import qualified Geometry.Point as P
-import Scene.Common (ObjectId)
+import Scene.Common (ObjectId(..))
+
+
+data GPUData = GPUData
+  { _vbo  :: GL.BufferObject
+  , _vao  :: GL.VertexArrayObject
+  , _nvxs :: GL.NumArrayIndices
+  }
+makeLenses ''GPUData
 
 -- | below types of the GPU memory location where 
 -- geometry entities get stored in GPU vertices form 
@@ -31,30 +41,65 @@ import Scene.Common (ObjectId)
 -- them back to their actual geometry type definiton 
 -- within the Scene state.
 data CachedCurve = CachedCurve
-  { ccId   :: ObjectId
-  , ccVBO  :: GL.BufferObject
-  , ccVAO  :: GL.VertexArrayObject
-  , ccVertexCount :: GL.NumArrayIndices
+  { _curveSceneId :: ObjectId
+  , _curveGpu     :: GPUData
   }
+makeLenses ''CachedCurve
+emptyCachedCurve :: CachedCurve
+emptyCachedCurve = CachedCurve
+  (ObjectId 0) (GPUData undefined undefined 0)
 
 data CachedSurface = CachedSurface
-  { csId      :: ObjectId
-  , csBorders :: [CachedCurve]
-  , csIsoCrvs :: [CachedCurve]
-  -- , csSpanIsos :: [CachedCurve]
+  { _surfaceSceneId :: ObjectId
+  , _surfaceBorders :: [CachedCurve]
+  , _surfaceIsos    :: [CachedCurve]
   }
+makeLenses ''CachedSurface
+emptyCachedSurface :: CachedSurface
+emptyCachedSurface = CachedSurface
+  (ObjectId 0) [] []
 
 data CachedHulls = CachedHulls
-  { chId    :: ObjectId
-  , chHulls :: [CachedCurve]
+  { _hullsSceneId :: ObjectId
+  , _hullsHulls   :: [CachedCurve]
   }
+makeLenses ''CachedHulls
 
-data CachedCVS = CachedCVS 
-  { ccvId   :: ObjectId
-  , ccvVBO  :: GL.BufferObject
-  , ccvVAO  :: GL.VertexArrayObject
-  , ccvVertexCount :: GL.NumArrayIndices
+data CachedCVS = CachedCVS
+  { _cvsSceneId :: ObjectId
+  , _cvsGpu     :: GPUData
   }
+makeLenses ''CachedCVS
+emptyCachedCVS :: CachedCVS
+emptyCachedCVS = CachedCVS
+  (ObjectId 0) (GPUData undefined undefined 0)
+
+-- | Classes to have similar lenses for all cashed
+-- Types
+class HasGpu s where
+  gpu :: Lens' s GPUData
+
+class HasSceneId s where
+  sceneId :: Lens' s ObjectId
+
+instance HasGpu CachedCurve where
+  gpu = curveGpu
+
+instance HasGpu CachedCVS where
+  gpu = cvsGpu
+
+instance HasSceneId CachedCurve where
+  sceneId = curveSceneId
+
+instance HasSceneId CachedSurface where
+  sceneId = surfaceSceneId
+
+instance HasSceneId CachedHulls where
+  sceneId = hullsSceneId
+
+instance HasSceneId CachedCVS where
+  sceneId = cvsSceneId
+
 
 -- | from a flatten [x1, y1, z1, x2, y2, z2, ...] list of 
 -- vertices creates the memory location reverencs (VBO, VAO) 

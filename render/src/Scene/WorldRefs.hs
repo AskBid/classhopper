@@ -30,9 +30,9 @@ mkAxes len = do
   (yvbo, yvao) <- cacheVBOVAO y
   (zvbo, zvao) <- cacheVBOVAO z
   pure $ Axes 
-    { xWorld = CachedCurve (ObjectId 0) xvbo xvao 2 
-    , yWorld = CachedCurve (ObjectId 0) yvbo yvao 2
-    , zWorld = CachedCurve (ObjectId 0) zvbo zvao 2
+    { xWorld = CachedCurve (ObjectId 0) $ GPUData xvbo xvao 2 
+    , yWorld = CachedCurve (ObjectId 0) $ GPUData yvbo yvao 2
+    , zWorld = CachedCurve (ObjectId 0) $ GPUData zvbo zvao 2
     }
   where 
     l = fromIntegral len / 2
@@ -46,7 +46,7 @@ mkGrid unit amount = do
       vertices    = pts2flattenXYZvertices allLinesPts 
       ptCount     = fromIntegral $ length allLinesPts
   (vbo, vao) <- cacheVBOVAO vertices
-  pure $ Grid $ CachedCurve (ObjectId 0) vbo vao ptCount
+  pure $ Grid $ CachedCurve (ObjectId 0) $ GPUData vbo vao ptCount
   where 
     step = fromIntegral unit
     size = (step * fromIntegral amount) / 2

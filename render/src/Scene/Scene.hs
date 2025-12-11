@@ -2,11 +2,13 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE TemplateHaskell       #-} 
 
 module Scene.Scene where 
 
 import Linear.V3
 import Data.Map
+import Control.Lens
 import qualified Graphics.Rendering.OpenGL as GL
 import GHC.Float (double2Float)
 import Foreign.Marshal.Array (withArray) 
@@ -39,33 +41,34 @@ data GeometryCurve = GeometryCurve
 -- | each srf and crv ids relates to their counterpart 
 -- identical ids in cached-srf and cached-crv
 data Scene = Scene
-  { geometrySRFS :: Map ObjectId GeometrySurface
-  , geometryCRVS :: Map ObjectId GeometryCurve
-  , cachedSRFS   :: Map ObjectId CachedSurface
-  , cachedCRVS   :: Map ObjectId CachedCurve
-  , cachedCVS    :: Map ObjectId CachedCVS
-  , cachedHulls  :: Map ObjectId CachedHulls 
-  , cachedAxes   :: Axes
-  , cachedGrid   :: Grid
-  , idCounterRef :: IORef Int
-  , bbox         :: P.BBox
+  { _geometrySRFS :: Map ObjectId GeometrySurface
+  , _geometryCRVS :: Map ObjectId GeometryCurve
+  , _cachedSRFS   :: Map ObjectId CachedSurface
+  , _cachedCRVS   :: Map ObjectId CachedCurve
+  , _cachedCVS    :: Map ObjectId CachedCVS
+  , _cachedHulls  :: Map ObjectId CachedHulls 
+  , _cachedAxes   :: Axes
+  , _cachedGrid   :: Grid
+  , _idCounterRef :: IORef Int
+  , _bbox         :: P.BBox
   }
+makeLenses ''Scene
 
 zeroScene :: IO Scene
 zeroScene = do
   ref <- newIORef 0
   (axes, grid) <- mkWorldRefs 10 10
   pure Scene
-    { geometrySRFS = empty
-    , geometryCRVS = empty
-    , cachedSRFS   = empty
-    , cachedCRVS   = empty
-    , cachedCVS    = empty
-    , cachedHulls  = empty
-    , cachedAxes   = axes
-    , cachedGrid   = grid
-    , idCounterRef = ref
-    , bbox = P.BBox (V3 0 0 0) (V3 0 0 0)
+    { _geometrySRFS = empty
+    , _geometryCRVS = empty
+    , _cachedSRFS   = empty
+    , _cachedCRVS   = empty
+    , _cachedCVS    = empty
+    , _cachedHulls  = empty
+    , _cachedAxes   = axes
+    , _cachedGrid   = grid
+    , _idCounterRef = ref
+    , _bbox = P.BBox (V3 0 0 0) (V3 0 0 0)
     }
 
 -- | makes sure every new object inserted in 
@@ -77,12 +80,9 @@ nextId ref = do
   return (ObjectId i) 
 
 deleteAndErase :: ObjectId -> Scene -> Scene
-deleteAndErase id scene@Scene{..} = do 
-  let newGeometryMap = delete id geometryCRVS
-      newCachedMap   = delete id cachedCRVS 
-  scene { geometryCRVS = newGeometryMap
-        , cachedCRVS   = newCachedMap 
-        }
+deleteAndErase id scene@Scene{..} = 
+  scene & geometryCRVS %~ delete id
+        & cachedCRVS   %~ delete id
 
 findSceneBBox :: [GeometrySurface] -> P.BBox
 findSceneBBox [] = P.BBox (V3 0 0 0) (V3 0 0 0)

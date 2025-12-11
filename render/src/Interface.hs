@@ -16,6 +16,7 @@ import Linear.V3
 import Linear.Projection (ortho)
 import Linear.Quaternion (Quaternion, axisAngle)
 import Data.Map
+import Control.Lens
 
 -- import qualified Drawing as D
 import qualified Scene.Scene as SC
@@ -26,10 +27,13 @@ import Shader.CV (loadCVShader)
 import Shader.Common (ShaderProgram(..))
 import Render.Common (RenderContext(..))
 import Render.Scene 
+import Scene.Common 
 import Render.CV (renderCV)
 import Render.Color
 import Render.WorldRefs (renderWorldRefs)
-import Geometry.Point (bboxDiagonal)
+import Geometry.Point
+import Geometry.Surface
+import Geometry.Type
 import GHC.Float (double2Float)
 import Scene.WorldRefs (mkWorldRefs)
 
@@ -77,18 +81,17 @@ launchWindow = do
 
           igesScene <- openIGES fileLocation
           scene <- fromIgesSceneToScene igesScene
-          let geomSrfs = elems $ SC.geometrySRFS scene
+          let geomSrfs = elems $ scene ^. SC.geometrySRFS 
               sceneBBox = SC.findSceneBBox geomSrfs
           -- (axes, grid) <- mkWorldRefs 1 100 -- (bboxDiagonal sceneBBox)
-              scene' = scene 
-                { SC.bbox = sceneBBox 
-                }
-
+              scene' = scene & SC.bbox .~ sceneBBox 
 
           -- take first surface available
-          let (id, srf) = head $ toList $ SC.geometrySRFS scene
+          let headSafe [] = (ObjectId 0, SC.GeometrySurface (ObjectId 0) (Surface [] [] Bezier Bezier (Irrational [[]]) [] (BBox (V3 0 0 0) (V3 0 0 0))) )
+              headSafe (a:_) = a
+              (idNoNeed, oneGeoSrf) = headSafe $ toList $ scene ^. SC.geometrySRFS
           -- show Handle of that surface (adds pts to scene)
-          scene'' <- showHandle srf scene'
+          scene'' <- showHandle oneGeoSrf scene'
 
           GL.depthFunc $= Just GL.Less
           -- ^ **Enables depth testing** - objects closer to the camera 
@@ -122,7 +125,7 @@ launchWindow = do
                 , asWindowSize    = sizeRef
                 , asScene         = scene''
                 }
-              sceneDiagonal = double2Float $ bboxDiagonal $ SC.bbox scene''
+              sceneDiagonal = double2Float $ bboxDiagonal $ scene'' ^. SC.bbox 
 
           appLoop win (sceneDiagonal/2) appState
 
@@ -154,7 +157,7 @@ appLoop window sceneDiagonal AppState{..} = do
                 , rcMVPMatrix         = mvpMatrix
                 , rcViewportSize      = (width, height)
         }
-    renderWorldRefs ctx (SC.cachedAxes asScene) (SC.cachedGrid asScene)
+    renderWorldRefs ctx (asScene ^. SC.cachedAxes) (asScene ^. SC.cachedGrid)
     renderScene ctx asScene
 
     swapBuffers window

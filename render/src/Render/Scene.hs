@@ -5,6 +5,7 @@ module Render.Scene where
 import Control.Monad (forM_)
 import qualified Graphics.Rendering.OpenGL as GL
 import Graphics.Rendering.OpenGL (($=))
+import Control.Lens
 
 import Render.Curve
 import Render.Surface
@@ -14,13 +15,13 @@ import Render.Color
 import Scene.Scene
 
 renderScene :: RenderContext -> Scene -> IO ()
-renderScene ctx Scene{..} = do
+renderScene ctx scene = do
   setupOpenGLopaque
-  forM_ cachedSRFS $ \srf -> 
+  forM_ (scene ^. cachedSRFS) $ \srf -> 
     renderSurfaceBezier ctx srf black
-  forM_ cachedCRVS $ \crv -> 
+  forM_ (scene ^. cachedCRVS) $ \crv -> 
     renderCurve ctx GL.LineStrip crv 1.5 blue
-  forM_ cachedCVS $ \cvs -> 
+  forM_ (scene ^. cachedCVS) $ \cvs -> 
     renderCV ctx cvs 10 4 blue
 
 -- | This sets up **global OpenGL rendering STATE**. 

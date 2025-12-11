@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Render.Surface where 
+module Render.BoundingBox where 
 
 import Linear.V4
 import qualified Graphics.Rendering.OpenGL as GL
@@ -14,13 +14,13 @@ import Shader.Common
 import Render.Curve (renderCurve, renderDashedCurve)
 import Render.Color
 
-renderSurfaceBezier
+renderBoundingBox
   :: RenderContext 
   -> CachedSurface
   -> Color
   -> IO ()
-renderSurfaceBezier ctx CachedSurface{..} color = do
-  forM_ _surfaceBorders $ \curve -> 
+renderBoundingBox ctx CachedSurface{..} color = do
+  forM_ csBorders $ \curve -> 
     renderCurve ctx GL.LineStrip curve 3 color
-  forM_ _surfaceIsos $ \curve -> 
+  forM_ csIsoCrvs $ \curve -> 
     renderDashedCurve ctx curve 1 10 10 color

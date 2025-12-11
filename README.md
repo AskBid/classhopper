@@ -4,7 +4,7 @@ A 3D geometry kernel and visualization system written in pure Haskell for high-p
 
 ## Vision
 
-ClassHopper aims to bridge the gap between general parametric modeling tools (Grasshopper, Dynamo) and Class A surfacing requirements. The goal is a system where designers can define intricate surface patterns that unfold across multiple NURBS patches while maintaining dimensional consistency between tiles/modules despite varying surfaces parameterizations and flow directions.
+ClassHopper aims to bridge the gap between general parametric modeling tools (Grasshopper, Dynamo) and Class A surfacing requirements. The goal is a system where designers can define intricate surface patterns that unfold across multiple NURBS patches while maintaining dimensional consistency between tiles/modules despite varying surfaces parameterizations and flow directions of the base model/poly-surfaces.
 
 ## Working:
 
