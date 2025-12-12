@@ -82,12 +82,20 @@ launchWindow = do
           igesScene <- openIGES fileLocation
           scene <- fromIgesSceneToScene igesScene
           let geomSrfs = elems $ scene ^. SC.geometrySRFS 
-              sceneBBox = SC.findSceneBBox geomSrfs
           -- (axes, grid) <- mkWorldRefs 1 100 -- (bboxDiagonal sceneBBox)
-              scene' = scene & SC.bbox .~ sceneBBox 
+              scene' = scene & SC.sceneBox .~ SC.findSceneBBox geomSrfs 
 
           -- take first surface available
-          let headSafe [] = (ObjectId 0, SC.GeometrySurface (ObjectId 0) (Surface [] [] Bezier Bezier (Irrational [[]]) [] (BBox (V3 0 0 0) (V3 0 0 0))) )
+          let headSafe [] = 
+                ( ObjectId 0
+                , SC.GeometrySurface  
+                       ( ObjectId 0 ) 
+                       ( Surface 
+                           [] [] Bezier Bezier 
+                           (Irrational [[]]) [] 
+                           (BBox (V3 0 0 0) (V3 0 0 0))
+                       ) 
+                )
               headSafe (a:_) = a
               (idNoNeed, oneGeoSrf) = headSafe $ toList $ scene ^. SC.geometrySRFS
           -- show Handle of that surface (adds pts to scene)
@@ -125,7 +133,7 @@ launchWindow = do
                 , asWindowSize    = sizeRef
                 , asScene         = scene''
                 }
-              sceneDiagonal = double2Float $ bboxDiagonal $ scene'' ^. SC.bbox 
+              sceneDiagonal = double2Float $ boxDiagonal $ scene'' ^. SC.sceneBox 
 
           appLoop win (sceneDiagonal/2) appState
 
@@ -255,7 +263,7 @@ scrollHandler zoomRef _ _ yoffset =
 
 
 ----------
--- TEMP
+-- TEMP --
 ----------
 fileLocation :: FilePath
 fileLocation = "../file-translator/sample/1srf_normal_trimmed.igs"

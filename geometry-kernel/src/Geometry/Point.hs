@@ -24,17 +24,27 @@ ptsSummationE = foldr (^+^) zero
 type Parameter = Double
 
 data BBox = BBox 
-  { minBBox :: Point3d
-  , maxBBox :: Point3d 
+  { boxMin :: Point3d
+  , boxMax :: Point3d 
   } deriving Show
 
-bboxDiagonal :: BBox -> Double 
-bboxDiagonal (BBox (V3 minX minY minZ) (V3 maxX maxY maxZ)) = 
+boxDiagonal :: BBox -> Double 
+boxDiagonal (BBox (V3 minX minY minZ) (V3 maxX maxY maxZ)) = 
   sqrt (((maxX - minX)^2 + (maxY - minY)^2) + (maxZ - minZ)^2)
 
-chunkPtsBBox :: [Double] -> ([Point3d], BBox)
-chunkPtsBBox [] = ([], BBox (V3 0 0 0) (V3 0 0 0))
-chunkPtsBBox (x0:y0:z0:rest) = 
+-- | given a point updates the Bounding Box to the new Min Max
+updateBox :: Point3d -> BBox -> BBox
+updateBox (V3 x y z) (BBox (V3 minX minY minZ) (V3 maxX maxY maxZ)) =
+  let newMin = V3 (min minX x) (min minY y) (min minZ z)
+      newMax = V3 (max maxX x) (max maxY y) (max maxZ z)
+  in BBox newMin newMax
+
+-- | integrates Bounding Box max min finding withe the
+-- Points creation from flat list of values (entity creation)
+-- TODO rewrite using @updateBBox@
+chunkPtsAndBox :: [Double] -> ([Point3d], BBox)
+chunkPtsAndBox [] = ([], BBox (V3 0 0 0) (V3 0 0 0))
+chunkPtsAndBox (x0:y0:z0:rest) = 
   let initialPt = V3 x0 y0 z0
       (pts, bbox) = go rest ([], BBox initialPt initialPt)
   in (initialPt : pts, bbox)
@@ -47,4 +57,4 @@ chunkPtsBBox (x0:y0:z0:rest) =
           (restPts, finalBBox) = go rest (pts, BBox newMin newMax)
       in (pt : restPts, finalBBox)
     go _ acc = acc
-chunkPtsBBox _ = ([], BBox (V3 0 0 0) (V3 0 0 0))
+chunkPtsAndBox _ = ([], BBox (V3 0 0 0) (V3 0 0 0))

@@ -71,7 +71,7 @@ mkBSpline
 mkBSpline pU ktsU pV ktsV coords =
 
   let
-    (pts, bbox) = chunkPtsBBox coords
+    (pts, bbox) = chunkPtsAndBox coords
 
     mU = length ktsU - 1
     mV = length ktsV - 1

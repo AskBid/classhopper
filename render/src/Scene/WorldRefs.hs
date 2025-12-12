@@ -6,6 +6,7 @@ import qualified Graphics.Rendering.OpenGL as GL
 import Scene.GPU
 import Data.IORef (mkWeakIORef)
 import Scene.Common (ObjectId(..))
+import Geometry.Point (BBox(..))
 
 data Axes = Axes 
   { xWorld :: CachedCurve 
@@ -30,9 +31,18 @@ mkAxes len = do
   (yvbo, yvao) <- cacheVBOVAO y
   (zvbo, zvao) <- cacheVBOVAO z
   pure $ Axes 
-    { xWorld = CachedCurve (ObjectId 0) $ GPUData xvbo xvao 2 
-    , yWorld = CachedCurve (ObjectId 0) $ GPUData yvbo yvao 2
-    , zWorld = CachedCurve (ObjectId 0) $ GPUData zvbo zvao 2
+    { xWorld = CachedCurve 
+                 (ObjectId 0) 
+                 (GPUData xvbo xvao 2) 
+                 (GLBox $ BBox (V3 0 0 0) (V3 0 0 0))
+    , yWorld = CachedCurve 
+                 (ObjectId 0) 
+                 (GPUData yvbo yvao 2)
+                 (GLBox $ BBox (V3 0 0 0) (V3 0 0 0))
+    , zWorld = CachedCurve 
+                 (ObjectId 0) 
+                 (GPUData zvbo zvao 2)
+                 (GLBox $ BBox (V3 0 0 0) (V3 0 0 0))
     }
   where 
     l = fromIntegral len / 2
@@ -43,10 +53,14 @@ mkGrid unit amount = do
       xParallels  = concatMap (\y -> [V3 (-size) y 0, V3 size y 0]) steps
       yParallels  = concatMap (\x -> [V3 x (-size) 0, V3 x size 0]) steps
       allLinesPts = xParallels <> yParallels
-      vertices    = pts2flattenXYZvertices allLinesPts 
+      vertices    = flat2xyz allLinesPts 
       ptCount     = fromIntegral $ length allLinesPts
   (vbo, vao) <- cacheVBOVAO vertices
-  pure $ Grid $ CachedCurve (ObjectId 0) $ GPUData vbo vao ptCount
+  pure $ Grid 
+       $ CachedCurve 
+           (ObjectId 0) 
+           (GPUData vbo vao ptCount)
+           (GLBox $ BBox (V3 0 0 0) (V3 0 0 0))
   where 
     step = fromIntegral unit
     size = (step * fromIntegral amount) / 2

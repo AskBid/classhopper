@@ -1,7 +1,5 @@
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
--- {-# LANGUAGE FlexibleInstances     #-}
--- {-# LANGUAGE PartialTypeSignatures #-}
 
 -- | Scene Geometries interface with the GPU
 -- via Type Classes that transforms them in VBO VAO 
@@ -31,7 +29,7 @@ instance GeometryHandle GeometrySurface where
   showHandle GeometrySurface{..} scene@Scene{..} = do
     let pts = concat $ S.getPoints (S.cvs gsDef)
         count = fromIntegral $ length pts
-        vtxs = pts2flattenXYZvertices pts
+        vtxs = flat2xyz pts
     (vbo, vao) <- GPU.cacheVBOVAO vtxs 
     let cvs = emptyCachedCVS
           & sceneId .~ gsId
@@ -58,13 +56,14 @@ instance Stageable C.Curve where
 instance Tessellatable GeometryCurve GPU.CachedCurve where
   tessellate GeometryCurve{..} = do
     let pts = C.sampleCrv gcDef samplingAmount
-        verticesFloats = pts2flattenXYZvertices pts
         count = fromIntegral $ length pts  
+        (vertices, box) = flat2xyzAndBox pts
         -- needed for draw call
-    (vbo, vao) <- GPU.cacheVBOVAO verticesFloats
+    (vbo, vao) <- GPU.cacheVBOVAO vertices
     pure $ emptyCachedCurve
              & sceneId .~ gcId 
              & gpu     .~ GPUData vbo vao count
+             & bbox    .~ box
 
 -- | TODO it probably does not need to be 4 different VBOVAo 
 -- all borders can be in one.. but could be useful when it comes 
@@ -79,17 +78,19 @@ instance Tessellatable GeometrySurface GPU.CachedSurface where
     i2 <- cachedCrv S.V 0.5
     pure $ emptyCachedSurface
              & sceneId .~ gsId 
-             & surfaceBorders .~ [b1,b2,b3,b4]
-             & surfaceIsos    .~ [i1,i2]
+             & borders .~ [b1,b2,b3,b4]
+             & isos    .~ [i1,i2]
     where 
+      cachedCrv :: S.DirectionUV -> Parameter -> IO CachedCurve
       cachedCrv dir param = do
         let pts = S.sampleIsocrv dir param samplingAmount gsDef
-            verticesFloats = pts2flattenXYZvertices pts
-            vtxCount = fromIntegral $ length pts
-        (vbo, vao) <- GPU.cacheVBOVAO verticesFloats
+            count = fromIntegral $ length pts
+            (vertices, box) = flat2xyzAndBox pts
+        (vbo, vao) <- GPU.cacheVBOVAO vertices
         pure $ emptyCachedCurve
                  & sceneId .~ gsId
-                 & gpu     .~ GPUData vbo vao vtxCount
+                 & gpu     .~ GPUData vbo vao count
+                 & bbox    .~ box
 
 -- verticesBBox :: BBox -> [Float]
 -- verticesBBox (BBox (Point3d xmin ymin zmin) (Point3d xmax ymax zmax)) =

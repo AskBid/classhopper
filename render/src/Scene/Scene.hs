@@ -50,7 +50,7 @@ data Scene = Scene
   , _cachedAxes   :: Axes
   , _cachedGrid   :: Grid
   , _idCounterRef :: IORef Int
-  , _bbox         :: P.BBox
+  , _sceneBox    :: P.BBox
   }
 makeLenses ''Scene
 
@@ -68,7 +68,7 @@ zeroScene = do
     , _cachedAxes   = axes
     , _cachedGrid   = grid
     , _idCounterRef = ref
-    , _bbox = P.BBox (V3 0 0 0) (V3 0 0 0)
+    , _sceneBox = P.BBox (V3 0 0 0) (V3 0 0 0)
     }
 
 -- | makes sure every new object inserted in 

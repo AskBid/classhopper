@@ -2,6 +2,7 @@
 {-# LANGUAGE DuplicateRecordFields  #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE FlexibleInstances      #-}
 
 -- | Probably the base types and operation of Scene 
 -- those are the types and relative operations that 
@@ -13,6 +14,7 @@
 -- buffers.
 module Scene.GPU where 
 
+import Data.List (foldl')
 import Control.Lens
 import Linear.V3
 import qualified Graphics.Rendering.OpenGL as GL
@@ -24,9 +26,11 @@ import Foreign.Marshal.Array (withArray)
 -- effeccient ready solution to translate a 
 -- haskell array into contiguous memory. 
 
-import qualified Geometry.Point as P
+import Geometry.Point
 import Scene.Common (ObjectId(..))
 
+newtype GLBox = GLBox BBox 
+  deriving Show
 
 data GPUData = GPUData
   { _vbo  :: GL.BufferObject
@@ -41,64 +45,46 @@ makeLenses ''GPUData
 -- them back to their actual geometry type definiton 
 -- within the Scene state.
 data CachedCurve = CachedCurve
-  { _curveSceneId :: ObjectId
-  , _curveGpu     :: GPUData
+  { _cachedCurveSceneId :: ObjectId
+  , _cachedCurveGpu     :: GPUData
+  , _cachedCurveBbox    :: GLBox
   }
-makeLenses ''CachedCurve
+makeFields ''CachedCurve
+
 emptyCachedCurve :: CachedCurve
 emptyCachedCurve = CachedCurve
-  (ObjectId 0) (GPUData undefined undefined 0)
+  (ObjectId 0) 
+  (GPUData undefined undefined 0)
+  (GLBox (BBox (V3 0 0 0) (V3 0 0 0)))
+
 
 data CachedSurface = CachedSurface
-  { _surfaceSceneId :: ObjectId
-  , _surfaceBorders :: [CachedCurve]
-  , _surfaceIsos    :: [CachedCurve]
+  { _cachedSurfaceSceneId :: ObjectId
+  , _cachedSurfaceBorders :: [CachedCurve]
+  , _cachedSurfaceIsos    :: [CachedCurve]
   }
-makeLenses ''CachedSurface
+makeFields ''CachedSurface
+
 emptyCachedSurface :: CachedSurface
 emptyCachedSurface = CachedSurface
   (ObjectId 0) [] []
 
+
 data CachedHulls = CachedHulls
-  { _hullsSceneId :: ObjectId
-  , _hullsHulls   :: [CachedCurve]
+  { _cachedHullsSceneId :: ObjectId
+  , _cachedHullsHulls   :: [CachedCurve]
   }
-makeLenses ''CachedHulls
+makeFields ''CachedHulls
+
 
 data CachedCVS = CachedCVS
-  { _cvsSceneId :: ObjectId
-  , _cvsGpu     :: GPUData
+  { _cachedCVSSceneId :: ObjectId
+  , _cachedCVSGpu     :: GPUData
   }
-makeLenses ''CachedCVS
+makeFields ''CachedCVS
 emptyCachedCVS :: CachedCVS
 emptyCachedCVS = CachedCVS
   (ObjectId 0) (GPUData undefined undefined 0)
-
--- | Classes to have similar lenses for all cashed
--- Types
-class HasGpu s where
-  gpu :: Lens' s GPUData
-
-class HasSceneId s where
-  sceneId :: Lens' s ObjectId
-
-instance HasGpu CachedCurve where
-  gpu = curveGpu
-
-instance HasGpu CachedCVS where
-  gpu = cvsGpu
-
-instance HasSceneId CachedCurve where
-  sceneId = curveSceneId
-
-instance HasSceneId CachedSurface where
-  sceneId = surfaceSceneId
-
-instance HasSceneId CachedHulls where
-  sceneId = hullsSceneId
-
-instance HasSceneId CachedCVS where
-  sceneId = cvsSceneId
 
 
 -- | from a flatten [x1, y1, z1, x2, y2, z2, ...] list of 
@@ -141,9 +127,22 @@ cacheVBOVAO vertices = do
 -- | Helper function to translate Points into flatten 
 -- [x1, y1, z1, x2, ...] vertices to be fed into GPU memory 
 -- via @cacehVBOVAO@
-pts2flattenXYZvertices :: Real a =>  [V3 a] -> [Float]
-pts2flattenXYZvertices [] = []
-pts2flattenXYZvertices (V3 x y z : pts) = 
+flat2xyz :: Real a =>  [V3 a] -> [Float]
+flat2xyz [] = []
+flat2xyz (V3 x y z : pts) = 
   realToFrac x : 
   realToFrac y : 
-  realToFrac z : pts2flattenXYZvertices pts
+  realToFrac z : flat2xyz pts
+
+-- | while flattening the points for OpenGL it also finds the 
+-- vertexes bounding box that is used to ray cast selection.
+flat2xyzAndBox :: [Point3d] -> ([Float], GLBox)
+flat2xyzAndBox pts = foldl' flatPtAndBox ([], initBox) pts
+  where 
+    initBox = GLBox $ BBox (V3 0 0 0) (V3 0 0 0)
+
+flatPtAndBox :: Fractional a => ([a], GLBox) -> Point3d -> ([a], GLBox)
+flatPtAndBox (pts, GLBox bbox) pt =  
+  let flatPt (V3 x y z) = realToFrac x : realToFrac y : realToFrac z : []
+      newBBox           = GLBox $ updateBox pt bbox
+  in (pts <> flatPt pt, newBBox)
