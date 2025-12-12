@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Interface where
 
@@ -32,7 +33,7 @@ import Shader.Curve (loadCurveShader, loadDashedCurveShader)
 import Shader.CV (loadCVShader)
 import Shader.Common (ShaderProgram(..))
 
-import Render.Common (RenderContext(..))
+import Render.Common 
 import Render.Scene 
 import Render.CV (renderCV)
 import Render.Curve
@@ -43,16 +44,21 @@ import Geometry.Point
 import Geometry.Surface
 import Geometry.Type
 
+newtype RotationView = RotationView (Deg360, Deg360, Deg360)
+-- Type wrapper for clarity
+newtype Deg360 = Deg360 Float
+  deriving (Show, Eq)
+-- Extract the float value
+floatDegreeRot :: Deg360 -> Float
+floatDegreeRot (Deg360 x) = x
+
 -- | ShaderProgram could become plural in the future
 data AppState = AppState
-  { asCurveShader       :: ShaderProgram
-  , asDashedCurveShader :: ShaderProgram
-  , asCVShader          :: ShaderProgram
-  , asRotationView  :: IORef RotationView
-  , asZoom          :: IORef Float
-  , asWindowSize    :: IORef (Int, Int)
-  , asScene         :: SC.Scene
+  { _asRotationView  :: IORef RotationView
+  , _asZoom          :: IORef Float
+  , _asScene         :: SC.Scene
   }
+makeLenses ''AppState 
 
 -- | launches windows and initializes OpenGL, AppState and loop.
 launchWindow :: IO ()
@@ -144,23 +150,28 @@ launchWindow = do
             "shaders/cv.frag"
 
           let appState = AppState
-                { asCurveShader       = curveShaderProgram
-                , asDashedCurveShader = dashedCurveShaderProgram
-                , asCVShader          = cvShaderProgram
-                , asRotationView  = rotViewRef
-                , asZoom          = zoomRef
-                , asWindowSize    = sizeRef
-                , asScene         = scene'''
+                { _asRotationView  = rotViewRef
+                , _asZoom          = zoomRef
+                , _asScene         = scene'''
                 }
-              sceneDiagonal = double2Float $ boxDiagonal $ scene''' ^. SC.sceneBox 
 
-          appLoop win (sceneDiagonal/2) appState
+              sceneDiagonal = double2Float $ boxDiagonal $ scene''' ^. SC.sceneBox
+
+              renderCtx = RenderContext
+                { _rcCurveShader       = curveShaderProgram
+                , _rcDashedCurveShader = dashedCurveShaderProgram
+                , _rcCVShader          = cvShaderProgram
+                , _rcMVPMatrix         = identity
+                , _rcViewportSize      = sizeRef
+                }
+
+          appLoop win (sceneDiagonal/2) appState renderCtx
 
           destroyWindow win
           terminate
 
-appLoop :: Window -> Float -> AppState -> IO ()
-appLoop window sceneDiagonal AppState{..} = do
+appLoop :: Window -> Float -> AppState -> RenderContext -> IO ()
+appLoop window sceneDiagonal appState renderCtx = do
   shouldClose <- windowShouldClose window
   unless shouldClose $ do
     -- Process all pending window/input events right now, 
@@ -172,30 +183,30 @@ appLoop window sceneDiagonal AppState{..} = do
     GL.clear [GL.ColorBuffer, GL.DepthBuffer]
 
     -- Read current state
-    rotView <- readIORef asRotationView
-    zoom <- readIORef asZoom
-    (width, height) <- readIORef asWindowSize
+    rotView <- readIORef $ appState ^. asRotationView
+    zoom <- readIORef $ appState ^. asZoom
+    (width, height) <- readIORef $ renderCtx ^. rcViewportSize
 
     let mvpMatrix = buildMVPMatrix sceneDiagonal rotView zoom width height
-        ctx = RenderContext
-                { rcCurveShader       = asCurveShader
-                , rcDashedCurveShader = asDashedCurveShader 
-                , rcCVShader          = asCVShader
-                , rcMVPMatrix         = mvpMatrix
-                , rcViewportSize      = (width, height)
-        }
-    renderWorldRefs ctx (asScene ^. SC.cachedAxes) (asScene ^. SC.cachedGrid)
-    renderScene ctx asScene
+        rCtx'     = renderCtx & rcMVPMatrix .~ mvpMatrix
+    renderWorldRefs rCtx' 
+                    (appState ^. asScene . SC.cachedAxes) 
+                    (appState ^. asScene . SC.cachedGrid)
+    renderScene rCtx' (appState ^. asScene)
     -------------
     -- TEMP start
+    -- to render the bounding boxes of the opengl polylines..
+    -- for visualisation purpouses only
     -------------
-    mapM_ (\crv -> renderCurve ctx GL.Lines crv 1 yellowBox) (asScene ^. SC.cachedBoxes) 
+    mapM_ 
+      (\crv -> renderCurve rCtx' GL.Lines crv 1 yellowBox) 
+      (appState ^. asScene . SC.cachedBoxes) 
     -------------
     -- TEMP end.
     -------------
 
     swapBuffers window
-    appLoop window sceneDiagonal AppState{..}
+    appLoop window sceneDiagonal appState rCtx'
 
 -- Update viewport when window is resized
 adjustViewportAndProjection 
@@ -206,14 +217,6 @@ adjustViewportAndProjection sizeRef _win winW winH = do
   GL.viewport $= (GL.Position 0 0, windowSize)
   -- Store new window size (will be used next frame to rebuild MVP)
   writeIORef sizeRef (winW, winH)
-
-newtype RotationView = RotationView (Deg360, Deg360, Deg360)
--- Type wrapper for clarity
-newtype Deg360 = Deg360 Float
-  deriving (Show, Eq)
--- Extract the float value
-floatDegreeRot :: Deg360 -> Float
-floatDegreeRot (Deg360 x) = x
 
 -- | Creates a Quaternion which is a rotation rappresentation that 
 -- calculates better with computation and the OpenGL stuff.
@@ -284,9 +287,10 @@ scrollHandler
   -> Double 
   -> Double 
   -> IO ()
-scrollHandler zoomRef _ _ yoffset = 
-  modifyIORef zoomRef (+ realToFrac (yoffset/5))
-
+scrollHandler zoomRef _ _ yoffset = do
+  let zoomFactor = 1.1 ** realToFrac yoffset  -- 10% per scroll notch
+  modifyIORef' zoomRef $ \currentZoom -> 
+    max 0.01 (min 100.0 (currentZoom * zoomFactor))
 
 ----------
 -- TEMP --

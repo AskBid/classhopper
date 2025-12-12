@@ -7,6 +7,7 @@ import qualified Graphics.Rendering.OpenGL as GL
 import qualified Data.Map as Map
 import Graphics.Rendering.OpenGL (($=))
 import Control.Lens
+import Data.IORef
 
 import Render.Common
 import Scene.GPU
@@ -20,20 +21,22 @@ renderCV
   -> Float
   -> Color 
   -> IO ()
-renderCV RenderContext{..} cvs radius thickness (Color rgba) = do
-  let ShaderProgram prog shadersVariables = rcCVShader
+renderCV ctx cvs radius thickness (Color rgba) = do
+  let ShaderProgram prog shadersVariables = ctx ^. rcCVShader
   
   GL.currentProgram $= Just prog
   
   -- Set MVP matrix -> MVP = Model × View × Projection
   case Map.lookup "mvpMatrix" shadersVariables of
-    Just locationGpuMem -> setVariableMatrix4fv locationGpuMem rcMVPMatrix
-    Nothing -> return ()
+    Just locationGpuMem -> 
+      setVariableMatrix4fv locationGpuMem (ctx ^. rcMVPMatrix)
+    Nothing -> 
+      return ()
   
   -- Set viewport size
   case Map.lookup "viewportSize" shadersVariables of
     Just locationGpuMem -> do
-      let (w, h) = rcViewportSize
+      (w, h) <- readIORef $ ctx ^. rcViewportSize
       GL.uniform locationGpuMem $= 
         GL.Vector2 
           (fromIntegral w :: GL.GLfloat) 
