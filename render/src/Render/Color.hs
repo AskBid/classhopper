@@ -28,3 +28,6 @@ redGrid = Color $ V4 0.7 0.06 0.06 1.0
 greenGrid :: Color
 greenGrid = Color $ V4 0.0 0.4 0.06 1.0
 
+yellowBox :: Color
+yellowBox = Color $ V4 0.0 0.4 0.4 0.5
+

@@ -137,12 +137,22 @@ flat2xyz (V3 x y z : pts) =
 -- | while flattening the points for OpenGL it also finds the 
 -- vertexes bounding box that is used to ray cast selection.
 flat2xyzAndBox :: [Point3d] -> ([Float], GLBox)
-flat2xyzAndBox pts = foldl' flatPtAndBox ([], initBox) pts
+flat2xyzAndBox [] = ([], GLBox $ BBox (V3 0 0 0) (V3 0 0 0))
+flat2xyzAndBox pts@(p:_) = 
+  let (vertices, GLBox (BBox minPt maxPt)) = foldl' flatPtAndBox ([], initBox) pts
+      -- Ensure minimum thickness of 1.0 in each dimension
+      minPt' = minPt
+      maxPt' = V3 (ensureThickness (minPt ^. _x) (maxPt ^. _x))
+                  (ensureThickness (minPt ^. _y) (maxPt ^. _y))
+                  (ensureThickness (minPt ^. _z) (maxPt ^. _z))
+      ensureThickness minVal maxVal = 
+        if abs (maxVal - minVal) < 0.001  -- essentially zero
+        then minVal + 1.0
+        else maxVal
+  in (vertices, GLBox $ BBox minPt' maxPt')
   where 
-    initBox = GLBox $ BBox (V3 0 0 0) (V3 0 0 0)
-
-flatPtAndBox :: Fractional a => ([a], GLBox) -> Point3d -> ([a], GLBox)
-flatPtAndBox (pts, GLBox bbox) pt =  
-  let flatPt (V3 x y z) = realToFrac x : realToFrac y : realToFrac z : []
-      newBBox           = GLBox $ updateBox pt bbox
-  in (pts <> flatPt pt, newBBox)
+    initBox = GLBox $ BBox p p
+    flatPtAndBox (accPts, GLBox bbox) pt =  
+      let flatPt (V3 x y z) = [realToFrac x, realToFrac y, realToFrac z]
+          newBBox = GLBox $ updateBox pt bbox
+      in (accPts <> flatPt pt, newBBox)

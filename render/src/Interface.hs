@@ -17,25 +17,31 @@ import Linear.Projection (ortho)
 import Linear.Quaternion (Quaternion, axisAngle)
 import Data.Map
 import Control.Lens
+import GHC.Float (double2Float)
 
 -- import qualified Drawing as D
 import qualified Scene.Scene as SC
 import Scene.Class (GeometryHandle(showHandle))
+import Scene.Common 
+import Scene.WorldRefs (mkWorldRefs)
+import Scene.GLBox -- only to dev for now.
+
 import OpenFile (openIGES, fromIgesSceneToScene)
+
 import Shader.Curve (loadCurveShader, loadDashedCurveShader)
 import Shader.CV (loadCVShader)
 import Shader.Common (ShaderProgram(..))
+
 import Render.Common (RenderContext(..))
 import Render.Scene 
-import Scene.Common 
 import Render.CV (renderCV)
+import Render.Curve
 import Render.Color
 import Render.WorldRefs (renderWorldRefs)
+
 import Geometry.Point
 import Geometry.Surface
 import Geometry.Type
-import GHC.Float (double2Float)
-import Scene.WorldRefs (mkWorldRefs)
 
 -- | ShaderProgram could become plural in the future
 data AppState = AppState
@@ -85,6 +91,11 @@ launchWindow = do
           -- (axes, grid) <- mkWorldRefs 1 100 -- (bboxDiagonal sceneBBox)
               scene' = scene & SC.sceneBox .~ SC.findSceneBBox geomSrfs 
 
+          -------------------------------------------
+          -- TEMP start: 
+          -- follows some experimental operation
+          -- prolly to deldete in production
+          -------------------------------------------
           -- take first surface available
           let headSafe [] = 
                 ( ObjectId 0
@@ -100,6 +111,14 @@ launchWindow = do
               (idNoNeed, oneGeoSrf) = headSafe $ toList $ scene ^. SC.geometrySRFS
           -- show Handle of that surface (adds pts to scene)
           scene'' <- showHandle oneGeoSrf scene'
+          --
+          -- experiment with showing every surface curve BBox
+          -- this inserts boundingBoxes edges in the scene.
+          gpuDataBoxes <- cacheBoxes $ getSceneCurves scene''
+          let scene''' = scene'' & SC.cachedBoxes .~ gpuDataBoxes -- ?~ does the Just ...
+          ------------------------------
+          -- // TEMP end.
+          ------------------------------
 
           GL.depthFunc $= Just GL.Less
           -- ^ **Enables depth testing** - objects closer to the camera 
@@ -131,9 +150,9 @@ launchWindow = do
                 , asRotationView  = rotViewRef
                 , asZoom          = zoomRef
                 , asWindowSize    = sizeRef
-                , asScene         = scene''
+                , asScene         = scene'''
                 }
-              sceneDiagonal = double2Float $ boxDiagonal $ scene'' ^. SC.sceneBox 
+              sceneDiagonal = double2Float $ boxDiagonal $ scene''' ^. SC.sceneBox 
 
           appLoop win (sceneDiagonal/2) appState
 
@@ -167,6 +186,13 @@ appLoop window sceneDiagonal AppState{..} = do
         }
     renderWorldRefs ctx (asScene ^. SC.cachedAxes) (asScene ^. SC.cachedGrid)
     renderScene ctx asScene
+    -------------
+    -- TEMP start
+    -------------
+    mapM_ (\crv -> renderCurve ctx GL.Lines crv 1 yellowBox) (asScene ^. SC.cachedBoxes) 
+    -------------
+    -- TEMP end.
+    -------------
 
     swapBuffers window
     appLoop window sceneDiagonal AppState{..}
@@ -266,7 +292,7 @@ scrollHandler zoomRef _ _ yoffset =
 -- TEMP --
 ----------
 fileLocation :: FilePath
-fileLocation = "../file-translator/sample/1srf_normal_trimmed.igs"
+-- fileLocation = "../file-translator/sample/1srf_normal_trimmed.igs"
 -- fileLocation = "../file-translator/sample/laferrari.igs"
 -- fileLocation = "../file-translator/sample/ClaireGoldsmithSunGlasses.igs"
 -- fileLocation = "../file-translator/sample/acefaceGlasses.igs"
@@ -275,7 +301,7 @@ fileLocation = "../file-translator/sample/1srf_normal_trimmed.igs"
 -- fileLocation = "../file-translator/iges-examples/irrational_revolve.igs"
 -- fileLocation = "../file-translator/iges-examples/rational_revolve.igs"
 -- fileLocation = "../file-translator/iges-examples/rational_revolve2.igs"
--- fileLocation = "../file-translator/iges-examples/A-pill_Classhopper.igs"
+fileLocation = "../file-translator/iges-examples/A-pill_Classhopper.igs"
 -- fileLocation = "../file-translator/iges-examples/saddle.igs"
 -- fileLocation = "../file-translator/iges-examples/NegativeEdgeFix_WiP_220913.igs"
 -- fileLocation = "../file-translator/iges-examples/4Classhopper_trimmed.igs"
