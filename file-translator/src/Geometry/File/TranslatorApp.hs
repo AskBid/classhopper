@@ -4,10 +4,10 @@ module Geometry.File.TranslatorApp where
 
 import Geometry.File.TranslatorAppType
 import Geometry.File.IGES.RunIgesReader (getIgesEntities)
-import Geometry.File.IGES.TypeEntity (Surface128data)
+import Geometry.File.IGES.TypeEntity (Surface128)
 import RIO
 
-openFile :: FilePath -> IO [Surface128data]
+openFile :: FilePath -> IO [Surface128]
 openFile filepath = do 
   logOptions <- logOptionsHandle stdout True
   let logOptionsNoTime = setLogUseTime False logOptions

@@ -17,7 +17,7 @@ import Geometry.File.IGES.TypeEntity
 import Geometry.File.IGES.Helper
 
 -- | using user state from the parser to build up the return Surface type.
-type ParserP a = Parsec Parameter Surface128data a
+type ParserP a = Parsec Parameter Surface128 a
 
 data ColsPaddings = ColsPaddings 
   { n1 :: Int -- 1+k1-m1 
@@ -39,12 +39,12 @@ calculateColsPads k1 k2 m1 m2 =
     , c  = (1+k1)*(1+k2)
     }
 
-surface128parser :: ParserP Surface128data 
+surface128parser :: ParserP Surface128 
 surface128parser = do 
   -- modifyState acts on userState of ParsecT 
   modifyState (const def)
   et <- entity
-  when (et /= Surface128) $
+  when (et /= Surface128_label) $
     fail "Expected entity 128 but got something else"
   k1 <- parseKM 
   k2 <- parseKM 
@@ -93,7 +93,7 @@ parseCPs pads = do
   cps   <- parseDoubles $ c pads * 3
   modifyState $ controlPoints .~ cps
 
-entity :: ParserP EntityType
+entity :: ParserP EntityType_label
 entity = do
   tok <- anyToken
   case textToInt tok >>= ckEntityType of

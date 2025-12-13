@@ -57,7 +57,7 @@ import Geometry.File.TranslatorAppType
 -- the @Either@ is for parsing errors.
 getIgesEntities 
   :: FilePath 
-  -> TranslatorApp [Surface128data]
+  -> TranslatorApp [Surface128]
 getIgesEntities location = do 
   logInfo $ "Reading IGES file: " <> displayShow location
   rawLines <- liftIO $ readIGESfile location
@@ -76,7 +76,7 @@ getIgesEntities location = do
 fishParameterFromDE 
   :: IgesRaw 
   -> DirEntry 
-  -> TranslatorApp (Either ParseError Surface128data)
+  -> TranslatorApp (Either ParseError Surface128)
 fishParameterFromDE igs de = do
   let mP = formatParameter (pointerP de) (countPlines de) igs
   case mP of

@@ -10,24 +10,24 @@ import Data.Default
 --------------------------
   --  144
 --------------------------
-data TrimmedSurface144data = TrimmedSurface144data
-  { _trimmedEntity           :: Surface128data
+data TrimmedSurface144 = TrimmedSurface144d
+  { _trimmedEntity           :: Surface128
   , _boundaryIsBoundary      :: Bool
     -- ^ this is a legacy thing.. it is always True
     -- is only if sometimes the surface is untrimmed 
     -- but they stil give boudnaries for contruction
   , _countInnerBoundaryLoops :: Int
-  , _outerBoundary           :: CurveOnSurface142data
-  , _innerBoundaries         :: Maybe [CurveOnSurface142data]
+  , _outerBoundary           :: CurveOnSurface142
+  , _innerBoundaries         :: Maybe [CurveOnSurface142]
   } -- deriving (Show, Eq)
 
 
 --------------------------
   --  142
 --------------------------
-data CurveOnSurface142data = CurveOnSurface142data
+data CurveOnSurface142 = CurveOnSurface142
   { _curveCreation :: CurveCreation
-  , _surface       :: Maybe Surface128data
+  , _surface       :: Maybe Surface128
   -- ^ in theory this surface should already be
   -- represented in the 144 entity the 142 belongs
   -- to. But maybe 142 can be on its own sometime. COS?
@@ -37,8 +37,8 @@ data CurveOnSurface142data = CurveOnSurface142data
   }
 
 data CurveOrComposite 
-  = Composite CompositeCurve102data 
-  | SingleCurve RBSplineCurve126data
+  = Composite CompositeCurve102
+  | SingleCurve RBSplineCurve126
 
 -- | Preferred method of representation
 -- for the curve on surface.
@@ -61,9 +61,9 @@ data CurveCreation
 --------------------------
   --  102
 --------------------------
-data CompositeCurve102data = CompositeCurve102data 
+data CompositeCurve102 = CompositeCurve102
   { _countCurves :: Int
-  , _curves      :: [RBSplineCurve126data]
+  , _curves      :: [RBSplineCurve126]
     -- ^ could also be: 
     -- Entity 110 - Line (for straight segments)
     -- Entity 100 - Circular Arc (for arc segments)
@@ -73,7 +73,7 @@ data CompositeCurve102data = CompositeCurve102data
 --------------------------
   --  126
 --------------------------
-data RBSplineCurve126data = RBSplineCurve126data
+data RBSplineCurve126 = RBSplineCurve126
   { _variousData128style :: Int
   , _andmore             :: String
   }
@@ -82,7 +82,7 @@ data RBSplineCurve126data = RBSplineCurve126data
 --------------------------
   --  128
 --------------------------
-data Surface128data = Surface128data
+data Surface128 = Surface128
   { _degreeU :: Int
   , _degreeV :: Int
   , _knotsU  :: [Double]
@@ -101,7 +101,7 @@ data Flags128 = Flags128
   } deriving (Show, Eq)
 
 makeLenses ''Flags128
-makeLenses ''Surface128data
+makeLenses ''Surface128
 
 instance Default Flags128 where
   def = Flags128
@@ -112,8 +112,8 @@ instance Default Flags128 where
     , _closedV    = True
     }
 
-instance Default Surface128data where
-  def = Surface128data
+instance Default Surface128 where
+  def = Surface128
     { _degreeU       = 0
     , _degreeV       = 0
     , _knotsU        = []

@@ -26,29 +26,29 @@ type IgesRaw = M.Map Section SeqNumRawLine
 
 data DirEntry = DirEntry
   { dirSeqNum   :: SeqNumDE
-  , entityType  :: EntityType
+  , entityType  :: EntityType_label
   , pointerP    :: SeqNumP
   , countPlines :: Int
   } deriving Show
 
 type Parameter = [T.Text]
 
-data EntityType 
-  = Surface128 
-  | TrimmedSurface144
-  | CurveOnSurface142
-  | CompositeCurve102
-  | RBSplineCurve126
+data EntityType_label 
+  = Surface128_label
+  | TrimmedSurface144_label
+  | CurveOnSurface142_label
+  | CompositeCurve102_label
+  | RBSplineCurve126_label
   deriving (Show, Eq) 
 
 -- | makes sure we accept only supported 
 -- integers for directory entity.
-ckEntityType :: Int -> Maybe EntityType
-ckEntityType 128 = Just Surface128
-ckEntityType 144 = Just TrimmedSurface144
-ckEntityType 142 = Just CurveOnSurface142
-ckEntityType 102 = Just CompositeCurve102
-ckEntityType 126 = Just RBSplineCurve126
+ckEntityType :: Int -> Maybe EntityType_label
+ckEntityType 128 = Just Surface128_label
+ckEntityType 144 = Just TrimmedSurface144_label
+ckEntityType 142 = Just CurveOnSurface142_label
+ckEntityType 102 = Just CompositeCurve102_label
+ckEntityType 126 = Just RBSplineCurve126_label
 --
 -- ckEntityType 141 = Boundary141
 -- mkEntityType 110 = Line_110
