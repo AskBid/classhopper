@@ -33,6 +33,9 @@ formatParameter start pCount igs = do
       in T.strip p : acc
       -- ^ to check if SeqNumDE was right, check on _).
 
+-- | Takes the first number in a Parameter and identifies
+-- the separator used for the rest of the parameter values
+-- usually ","
 takeFirstNumAndSep :: T.Text -> (T.Text, Maybe Char)
 takeFirstNumAndSep t =
   let numPart = T.takeWhile isDigit t

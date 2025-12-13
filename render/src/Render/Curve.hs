@@ -1,5 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
-
 module Render.Curve where 
 
 import Linear.V4

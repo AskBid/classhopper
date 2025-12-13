@@ -6,6 +6,26 @@ module Geometry.File.IGES.TypeEntity where
 import Control.Lens
 import Data.Default
 
+data TrimmedSurface144data = TrimmedSurface144data
+  { _trimmedEntity :: Surface128data
+  , _boundaryIsBoundary :: Bool
+    -- ^ this is a legacy thing.. it is always True
+    -- is nly if sometimes the surface is untrimmed 
+    -- but they stil give boudnaries for contruction
+  , _countInnerBoundaryLoops :: Int
+  , _outerBoundary :: CurveOnParametricSurface142data
+  , _innerBoundaries :: [CurveOnParametricSurface142data]
+  } -- deriving (Show, Eq)
+
+data Boundary141data = Boundary141data 
+ { _undefined141 :: ()
+ }
+
+data CurveOnParametricSurface142data = 
+  CurveOnParametricSurface142data
+  { _undefined142 :: ()
+  }
+
 data Surface128data = Surface128data
   { _degreeU :: Int
   , _degreeV :: Int

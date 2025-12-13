@@ -7,6 +7,8 @@ import qualified Data.IntMap.Strict as IM
 import qualified Data.Text as T
 
 type FileLine = T.Text
+-- | Sequence number is non other than the line
+-- number for the section considered.
 type SeqNumDE = Int
 type SeqNumP = Int
 
@@ -33,18 +35,21 @@ type Parameter = [T.Text]
 
 data EntityType 
   = Surface128 
-  | TrimSurface144
-  | CompCurve102
+  | TrimmedSurface144
+  | CurveOnParametricSurface142
+  | Boundary141
+  | CompositeCurve102
   | Curve126
   | Line110
-  | LoopOfCurves141
   deriving (Show, Eq) 
 
 ckEntityType :: Int -> Maybe EntityType
 ckEntityType 128 = Just Surface128
--- mkEntityType 144 = TrimSurface_144
--- mkEntityType 102 = CompCurve_102
+ckEntityType 144 = Just TrimmedSurface144
+ckEntityType 142 = Just CurveOnParametricSurface142
+-- ckEntityType 102 = CompositeCurve102
+--
+-- ckEntityType 141 = Boundary141
 -- mkEntityType 126 = Curve_126
 -- mkEntityType 110 = Line_110
--- mkEntityType 141 = LoopOfCurves_141
 ckEntityType _ = Nothing              

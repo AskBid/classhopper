@@ -9,7 +9,9 @@ library
                   , Geometry.File.IGES.TypeEntity
                   , Geometry.File.IGES.BuilderDirectory
                   , Geometry.File.IGES.BuilderParameter
-                  , Geometry.File.IGES.ParameterParser
+                  , Geometry.File.IGES.ParameterParser.Common
+                  , Geometry.File.IGES.ParameterParser.Surface128
+                  , Geometry.File.IGES.ParameterParser.TrimmedSurface144
                   , Geometry.File.IGES.Helper
                   , Geometry.File.IGES.RunIgesReader
                   , Geometry.File.TranslatorAppType

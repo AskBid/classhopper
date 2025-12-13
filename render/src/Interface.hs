@@ -296,7 +296,7 @@ scrollHandler zoomRef _ _ yoffset = do
 -- TEMP --
 ----------
 fileLocation :: FilePath
--- fileLocation = "../file-translator/sample/1srf_normal_trimmed.igs"
+fileLocation = "../file-translator/sample/1srf_normal_trimmed.igs"
 -- fileLocation = "../file-translator/sample/laferrari.igs"
 -- fileLocation = "../file-translator/sample/ClaireGoldsmithSunGlasses.igs"
 -- fileLocation = "../file-translator/sample/acefaceGlasses.igs"
@@ -305,7 +305,7 @@ fileLocation :: FilePath
 -- fileLocation = "../file-translator/iges-examples/irrational_revolve.igs"
 -- fileLocation = "../file-translator/iges-examples/rational_revolve.igs"
 -- fileLocation = "../file-translator/iges-examples/rational_revolve2.igs"
-fileLocation = "../file-translator/iges-examples/A-pill_Classhopper.igs"
+-- fileLocation = "../file-translator/iges-examples/A-pill_Classhopper.igs"
 -- fileLocation = "../file-translator/iges-examples/saddle.igs"
 -- fileLocation = "../file-translator/iges-examples/NegativeEdgeFix_WiP_220913.igs"
 -- fileLocation = "../file-translator/iges-examples/4Classhopper_trimmed.igs"

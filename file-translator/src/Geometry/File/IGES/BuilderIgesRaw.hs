@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase        #-}
 
 module Geometry.File.IGES.BuilderIgesRaw where

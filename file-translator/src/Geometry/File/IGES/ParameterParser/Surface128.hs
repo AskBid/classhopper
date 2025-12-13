@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- | To better understand this parser is hepful to read about 
 -- entity 128 in any IGES ISO documentation.
-module Geometry.File.IGES.ParameterParser 
+module Geometry.File.IGES.ParameterParser.Surface128
   ( surface128parser
   ) where 
 

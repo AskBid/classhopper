@@ -35,7 +35,7 @@ import Geometry.File.IGES.BuilderDirectory
   (buildDEs)
 import Geometry.File.IGES.BuilderParameter 
   (formatParameter)
-import Geometry.File.IGES.ParameterParser 
+import Geometry.File.IGES.ParameterParser.Surface128 
   (surface128parser)
 import Geometry.File.IGES.TypeEntity
 import Geometry.File.IGES.Type
