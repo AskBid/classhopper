@@ -1,10 +1,46 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE FlexibleInstances      #-} 
+{-# LANGUAGE FunctionalDependencies #-}
 
 -- | All the types related to the IGES file entities.
 module Geometry.File.IGES.TypeEntity where 
 
 import Control.Lens
 import Data.Default
+
+--------------------------
+  --  128
+--------------------------
+data Surface128 = Surface128
+  { _surface128DegreeU :: Int
+  , _surface128DegreeV :: Int
+  , _surface128KnotsU  :: [Double]
+  , _surface128KnotsV  :: [Double]
+  , _surface128Weights :: [Double]
+  , _surface128ControlPoints :: [Double]
+  , _surface128PeriodicU  :: Bool 
+  , _surface128PeriodicV  :: Bool 
+  , _surface128Polynomial :: Bool
+  , _surface128ClosedU    :: Bool 
+  , _surface128ClosedV    :: Bool
+  } deriving (Show, Eq)
+
+makeFields ''Surface128
+
+instance Default Surface128 where
+  def = Surface128
+    { _surface128DegreeU       = 0
+    , _surface128DegreeV       = 0
+    , _surface128KnotsU        = []
+    , _surface128KnotsV        = []
+    , _surface128Weights       = []
+    , _surface128ControlPoints = []
+    , _surface128PeriodicU  = True
+    , _surface128PeriodicV  = True
+    , _surface128Polynomial = False
+    , _surface128ClosedU    = True
+    , _surface128ClosedV    = True
+    }
 
 
 --------------------------
@@ -74,52 +110,14 @@ data CompositeCurve102 = CompositeCurve102
   --  126
 --------------------------
 data RBSplineCurve126 = RBSplineCurve126
-  { _variousData128style :: Int
-  , _andmore             :: String
-  }
-
-
---------------------------
-  --  128
---------------------------
-data Surface128 = Surface128
-  { _degreeU :: Int
-  , _degreeV :: Int
-  , _knotsU  :: [Double]
-  , _knotsV  :: [Double]
-  , _weights :: [Double]
-  , _controlPoints :: [Double]
-  , _flags :: Flags128
+  { _rBSplineCurve126DegreeU :: Int
+  , _rBSplineCurve126KnotsU  :: [Double]
+  , _rBSplineCurve126Weights :: [Double]
+  , _rBSplineCurve126ControlPoints :: [Double]
+  , _rBSplineCurve126PeriodicU  :: Bool 
+  , _rBSplineCurve126Polynomial :: Bool
+  , _rBSplineCurve126ClosedU    :: Bool 
   } deriving (Show, Eq)
 
-data Flags128 = Flags128 
-  { _periodicU  :: Bool 
-  , _periodicV  :: Bool 
-  , _polynomial :: Bool
-  , _closedU :: Bool 
-  , _closedV :: Bool 
-  } deriving (Show, Eq)
-
-makeLenses ''Flags128
-makeLenses ''Surface128
-
-instance Default Flags128 where
-  def = Flags128
-    { _periodicU  = True
-    , _periodicV  = True
-    , _polynomial = False
-    , _closedU    = True
-    , _closedV    = True
-    }
-
-instance Default Surface128 where
-  def = Surface128
-    { _degreeU       = 0
-    , _degreeV       = 0
-    , _knotsU        = []
-    , _knotsV        = []
-    , _weights       = []
-    , _controlPoints = []
-    , _flags         = def  -- uses Default Flags128
-    }
+makeFields ''RBSplineCurve126
 

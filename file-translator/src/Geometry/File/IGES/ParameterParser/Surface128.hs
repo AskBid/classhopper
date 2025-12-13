@@ -69,11 +69,11 @@ parseFlags = do
   periodicU'  <- parse01
   periodicV'  <- parse01
   modifyState 
-    $ (flags . closedU .~ closedU')
-    . (flags . closedV .~ closedV')
-    . (flags . polynomial .~ polynomial')
-    . (flags . periodicU  .~ periodicU')
-    . (flags . periodicV  .~ periodicV')
+    $ (closedU .~ closedU')
+    . (closedV .~ closedV')
+    . (polynomial .~ polynomial')
+    . (periodicU  .~ periodicU')
+    . (periodicV  .~ periodicV')
 
 parseKnots :: ColsPaddings -> ParserP ()
 parseKnots pads = do
