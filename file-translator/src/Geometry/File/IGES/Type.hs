@@ -36,20 +36,22 @@ type Parameter = [T.Text]
 data EntityType 
   = Surface128 
   | TrimmedSurface144
-  | CurveOnParametricSurface142
-  | Boundary141
+  | CurveOnSurface142
   | CompositeCurve102
-  | Curve126
-  | Line110
+  | RBSplineCurve126
   deriving (Show, Eq) 
 
+-- | makes sure we accept only supported 
+-- integers for directory entity.
 ckEntityType :: Int -> Maybe EntityType
 ckEntityType 128 = Just Surface128
 ckEntityType 144 = Just TrimmedSurface144
-ckEntityType 142 = Just CurveOnParametricSurface142
--- ckEntityType 102 = CompositeCurve102
+ckEntityType 142 = Just CurveOnSurface142
+ckEntityType 102 = Just CompositeCurve102
+ckEntityType 126 = Just RBSplineCurve126
 --
 -- ckEntityType 141 = Boundary141
--- mkEntityType 126 = Curve_126
 -- mkEntityType 110 = Line_110
+-- mkEntityType 100 = CircularArc_110 (arc segment)
+-- mkEntityType 104 = ConicArc_104 (ellipses, parabolas, hyperbolas)
 ckEntityType _ = Nothing              

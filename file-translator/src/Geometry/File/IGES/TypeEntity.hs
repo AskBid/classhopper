@@ -6,26 +6,82 @@ module Geometry.File.IGES.TypeEntity where
 import Control.Lens
 import Data.Default
 
+
+--------------------------
+  --  144
+--------------------------
 data TrimmedSurface144data = TrimmedSurface144data
-  { _trimmedEntity :: Surface128data
-  , _boundaryIsBoundary :: Bool
+  { _trimmedEntity           :: Surface128data
+  , _boundaryIsBoundary      :: Bool
     -- ^ this is a legacy thing.. it is always True
-    -- is nly if sometimes the surface is untrimmed 
+    -- is only if sometimes the surface is untrimmed 
     -- but they stil give boudnaries for contruction
   , _countInnerBoundaryLoops :: Int
-  , _outerBoundary :: CurveOnParametricSurface142data
-  , _innerBoundaries :: [CurveOnParametricSurface142data]
+  , _outerBoundary           :: CurveOnSurface142data
+  , _innerBoundaries         :: Maybe [CurveOnSurface142data]
   } -- deriving (Show, Eq)
 
-data Boundary141data = Boundary141data 
- { _undefined141 :: ()
- }
 
-data CurveOnParametricSurface142data = 
-  CurveOnParametricSurface142data
-  { _undefined142 :: ()
+--------------------------
+  --  142
+--------------------------
+data CurveOnSurface142data = CurveOnSurface142data
+  { _curveCreation :: CurveCreation
+  , _surface       :: Maybe Surface128data
+  -- ^ in theory this surface should already be
+  -- represented in the 144 entity the 142 belongs
+  -- to. But maybe 142 can be on its own sometime. COS?
+  , _curve3D      :: CurveOrComposite
+  , _curveUV      :: CurveOrComposite
+  , _preferredRep :: PreferredRep
   }
 
+data CurveOrComposite 
+  = Composite CompositeCurve102data 
+  | SingleCurve RBSplineCurve126data
+
+-- | Preferred method of representation
+-- for the curve on surface.
+data PreferredRep 
+  = RepUnspecified
+  | SBt3D
+  | CtUV
+  | BothEqual
+  deriving Show
+
+-- | how was the curve created.
+data CurveCreation 
+  = CreationUnspecified
+  | Projection
+  | SurfacesIntersection
+  | IsoCurve
+  deriving Show
+
+
+--------------------------
+  --  102
+--------------------------
+data CompositeCurve102data = CompositeCurve102data 
+  { _countCurves :: Int
+  , _curves      :: [RBSplineCurve126data]
+    -- ^ could also be: 
+    -- Entity 110 - Line (for straight segments)
+    -- Entity 100 - Circular Arc (for arc segments)
+    -- Entity 104 - Conic Arc(ellipses, parabolas, hyperbolas)
+  }
+
+--------------------------
+  --  126
+--------------------------
+data RBSplineCurve126data = RBSplineCurve126data
+  { _variousData128style :: Int
+  , _andmore             :: String
+  }
+
+
+--------------------------
+  --  128
+--------------------------
 data Surface128data = Surface128data
   { _degreeU :: Int
   , _degreeV :: Int

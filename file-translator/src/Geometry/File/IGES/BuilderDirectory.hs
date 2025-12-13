@@ -61,7 +61,10 @@ readDirectoryEntry (rowN1, l1) (rowN2, l2) = do
           logInfo $ "Reckognised entity type " <> displayShow e <> "."
           let cellsL2 = chunkText 8 l2
               pointerP = textToInt =<< safeIndex cellsL1 1 
+              -- ^ yes, pointer seems always to be at the same cell.
+              -- for all entities. So kind of a default.
               countOfPlines = textToInt =<< safeIndex cellsL2 3
+              -- same for parameter lines count.
           case DirEntry rowN1 e <$> pointerP <*> countOfPlines of 
             Nothing -> do 
               logError "Directory Entry not paramenter pointer or lines count missing!"
