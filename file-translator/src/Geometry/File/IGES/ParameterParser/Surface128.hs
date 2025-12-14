@@ -21,25 +21,25 @@ import Geometry.File.IGES.ParameterParser.Common
 -- return Surface type.
 type Parser128 a = Parsec Parameter Surface128 a
 
+
 data ColsPaddings = ColsPaddings 
-  { n1 :: Int -- 1+k1-m1 
-  , n2 :: Int -- 1+k2-m2
-  , a  :: Int -- n1+2*m1 
-  , b  :: Int -- n2+2*m2 
-  , c  :: Int -- (1+k1)*(1+k2)
+  { nKnotsU :: Int -- n1+2*m1 
+  , nKnotsV :: Int -- n2+2*m2 
+  , nPoints :: Int -- (1+k1)*(1+k2)
   }
 
+-- | K in iges world is basically n 
+--   M in iges worls is basically p
+--   from `p = m-n-1` and m = p+n+1 
+-- we add 2 because we are not starting from 0.
 calculateColsPads :: Int -> Int -> Int -> Int -> ColsPaddings 
 calculateColsPads k1 k2 m1 m2 = 
-  let n1 = 1+k1-m1 
-      n2 = 1+k2-m2
-  in ColsPaddings  
-    { n1 = n1
-    , n2 = n2
-    , a  = k1+m1+2  
-    , b  = k2+m2+2
-    , c  = (1+k1)*(1+k2)
+  ColsPaddings  
+    { nKnotsU  = k1+m1+2
+    , nKnotsV  = k2+m2+2
+    , nPoints  = (1+k1)*(1+k2)
     }
+
 
 surface128parser :: Parser128 Surface128 
 surface128parser = do 
@@ -62,6 +62,7 @@ surface128parser = do
   parseCPs pads
   getState
 
+
 -- SUB PARSERs \/
 parseFlags :: Parser128 ()
 parseFlags = do
@@ -79,18 +80,18 @@ parseFlags = do
 
 parseKnots :: ColsPaddings -> Parser128 ()
 parseKnots pads = do
-  u <- parseDoubles (a pads)
-  v <- parseDoubles (b pads)
+  u <- parseDoubles (nKnotsU pads)
+  v <- parseDoubles (nKnotsV pads)
   modifyState $
     (knotsU .~ u)
     . (knotsV .~ v)
 
 parseWeights :: ColsPaddings -> Parser128 ()
 parseWeights pads = do
-  w <- parseDoubles $ c pads
+  w <- parseDoubles $ nPoints pads
   modifyState $ weights .~ w
 
 parseCPs :: ColsPaddings -> Parser128 ()
 parseCPs pads = do
-  cps   <- parseDoubles $ c pads * 3
+  cps   <- parseDoubles $ nPoints pads * 3
   modifyState $ controlPoints .~ cps

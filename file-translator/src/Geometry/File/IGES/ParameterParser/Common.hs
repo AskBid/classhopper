@@ -8,11 +8,13 @@ import qualified Data.Text as T
 import Text.Read (readMaybe)
 
 import Geometry.File.IGES.Type 
-import Geometry.File.IGES.Helper
+import Geometry.File.IGES.Helper (textToInt)
 
 
 -- | s is the UserState (the state set by user in Parser)
 -- a is the type returned.
+-- this is a Parameter parser that need its UserState
+-- customised to the particualr parameter type processed.
 type ParserP s a = Parsec Parameter s a
 
 -- | checks the first cell of the Parameter and makes
@@ -35,9 +37,10 @@ parse01 = do
       fail $ "Expected '0' or '1', but got: " ++ T.unpack other
 
 
--- | also knows as `n+1` in `p = m-n-1`
+-- | K also knows as `n` from `p = m-n-1`
 -- where p is degree, n the points - 1
 -- and m the knots - 1.
+-- M is the degree, so p.
 parseKM :: ParserP s Int 
 parseKM = do 
   tok <- anyToken

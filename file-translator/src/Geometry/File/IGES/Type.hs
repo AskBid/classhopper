@@ -38,7 +38,7 @@ data EntityType_label
   | TrimmedSurface144_label
   | CurveOnSurface142_label
   | CompositeCurve102_label
-  | RBSplineCurve126_label
+  | Curve126_label
   deriving (Show, Eq) 
 
 -- | makes sure we accept only supported 
@@ -48,7 +48,7 @@ ckEntityType 128 = Just Surface128_label
 ckEntityType 144 = Just TrimmedSurface144_label
 ckEntityType 142 = Just CurveOnSurface142_label
 ckEntityType 102 = Just CompositeCurve102_label
-ckEntityType 126 = Just RBSplineCurve126_label
+ckEntityType 126 = Just Curve126_label
 --
 -- ckEntityType 141 = Boundary141
 -- mkEntityType 110 = Line_110
