@@ -33,7 +33,7 @@ import Scene.Class (addToScene)
 
 -- | to transfer the scene to the Scene in bezier-rnder module.
 newtype SceneFromIGES = SceneFromIGES
-  { surfaces  :: [Surface128data]
+  { surfaces  :: [Surface128]
   -- , curves    :: [Curve]
   -- , unit      :: Float
   -- , maxSize   :: Int 
@@ -62,25 +62,25 @@ fromIgesSceneToScene SceneFromIGES{..} = do
       liftIO $ addToScene srf scene
 
 validateSurface128 
-  :: Surface128data 
-  -> RenderApp (Maybe Surface128data)
+  :: Surface128 
+  -> RenderApp (Maybe Surface128)
 validateSurface128 s0 = do -- Flags check
   let okFlags = 
-        and [ not $ s0 ^. flags . periodicU
-            , not $ s0 ^. flags . periodicV
-            , not $ s0 ^. flags . closedU
-            , not $ s0 ^. flags . closedV 
+        and [ not $ s0 ^. periodicU
+            , not $ s0 ^. periodicV
+            , not $ s0 ^. closedU
+            , not $ s0 ^. closedV 
             ]
   unless okFlags $ logWarn "Flags check failed. (Surface128)"
   if not okFlags
   then return Nothing 
   else return (Just s0)  
 
-processSceneSurfaces :: [Surface128data] -> RenderApp [S.Surface]
+processSceneSurfaces :: [Surface128] -> RenderApp [S.Surface]
 processSceneSurfaces srf128s = do
   fmap catMaybes $ mapM validateSurface128 srf128s >>= mapM convert 
   where
-    convert :: Maybe Surface128data -> RenderApp (Maybe S.Surface)
+    convert :: Maybe Surface128 -> RenderApp (Maybe S.Surface)
     convert Nothing  = do 
       logWarn "An IGES surface has NOT passed the validation checks."
       return Nothing
@@ -97,7 +97,7 @@ processSceneSurfaces srf128s = do
           logError $ displayShow s128
           pure Nothing
         Just srf -> do 
-          if s128 ^. flags . polynomial -- Irrational if True
+          if s128 ^. polynomial -- Irrational if True
           then do 
             logInfo "IGES surface succesfully added to Classhopper Scene."
             pure $ Just srf

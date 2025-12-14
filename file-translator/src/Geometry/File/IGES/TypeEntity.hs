@@ -40,7 +40,7 @@ instance Default Surface128 where
     , _surface128Polynomial = False
     , _surface128ClosedU    = True
     , _surface128ClosedV    = True
-    }
+}
 
 
 --------------------------
@@ -74,7 +74,7 @@ data CurveOnSurface142 = CurveOnSurface142
 
 data CurveOrComposite 
   = Composite CompositeCurve102
-  | SingleCurve RBSplineCurve126
+  | SingleCurve Curve126
 
 -- | Preferred method of representation
 -- for the curve on surface.
@@ -99,25 +99,37 @@ data CurveCreation
 --------------------------
 data CompositeCurve102 = CompositeCurve102
   { _countCurves :: Int
-  , _curves      :: [RBSplineCurve126]
+  , _curves      :: [Curve126]
     -- ^ could also be: 
     -- Entity 110 - Line (for straight segments)
     -- Entity 100 - Circular Arc (for arc segments)
     -- Entity 104 - Conic Arc(ellipses, parabolas, hyperbolas)
   }
 
+
 --------------------------
   --  126
 --------------------------
-data RBSplineCurve126 = RBSplineCurve126
-  { _rBSplineCurve126DegreeU :: Int
-  , _rBSplineCurve126KnotsU  :: [Double]
-  , _rBSplineCurve126Weights :: [Double]
-  , _rBSplineCurve126ControlPoints :: [Double]
-  , _rBSplineCurve126PeriodicU  :: Bool 
-  , _rBSplineCurve126Polynomial :: Bool
-  , _rBSplineCurve126ClosedU    :: Bool 
+-- | Rational BSpline Curve
+data Curve126 = Curve126
+  { _curve126DegreeU :: Int
+  , _curve126KnotsU  :: [Double]
+  , _curve126Weights :: [Double]
+  , _curve126ControlPoints :: [Double]
+  , _curve126PeriodicU  :: Bool 
+  , _curve126Polynomial :: Bool
+  , _curve126ClosedU    :: Bool 
   } deriving (Show, Eq)
 
-makeFields ''RBSplineCurve126
+makeFields ''Curve126
 
+instance Default Curve126 where
+  def = Curve126
+    { _curve126DegreeU       = 0
+    , _curve126KnotsU        = []
+    , _curve126Weights       = []
+    , _curve126ControlPoints = []
+    , _curve126PeriodicU  = True
+    , _curve126Polynomial = False
+    , _curve126ClosedU    = True
+    }

@@ -4,7 +4,7 @@ import Geometry.File.IGES.TypeEntity
 import Type 
 import RIO
 
-logSurface :: Surface128data -> RenderApp ()
+logSurface :: Surface128 -> RenderApp ()
 logSurface s0 = do 
   logInfo $ displayShow 
               [ show (s0 ^. degreeU)
