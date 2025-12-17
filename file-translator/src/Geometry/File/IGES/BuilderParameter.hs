@@ -12,21 +12,26 @@ import Text.Read (readMaybe)
 import Control.Monad (when, join)
 
 import Geometry.File.IGES.Type 
-import Geometry.File.IGES.BuilderIgesRaw
+import Geometry.File.IGES.BuilderSectionedIges
 import Geometry.File.IGES.Helper
 
 -- | the column at which the free formatted parameter data stops.
 pColumnEnd :: SeqNumP
 pColumnEnd = 65
 
-formatParameter :: SeqNumP -> Int -> IgesRaw -> Maybe Parameter
+-- | it just processes the parameter section of an entity and 
+-- returns the raw cells as Text. Ready to be parsed.
+formatParameter :: SeqNumP -> Int -> SectionedIges -> Maybe Parameter
 formatParameter start pCount igs = do
+
   let paramSect = igs M.! Parameter
       (_, temp) = IM.split (start - 1) paramSect
-      (ps, _) = IM.split (start + pCount) temp
+      (ps, _) = IM.split (start + pCount) temp 
+
   pAsText <- safeInit $ T.concat $ IM.foldrWithKey processLine [] ps
   separator <- snd $ takeFirstNumAndSep pAsText
   return $ splitText separator pAsText
+
   where
     processLine _ l acc =
       let (p, _) = T.splitAt pColumnEnd l

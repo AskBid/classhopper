@@ -56,9 +56,9 @@ data Curve126 = Curve126
   , _curve126Closed        :: Bool 
   , _curve126Polynomial    :: Bool
   , _curve126Periodic      :: Bool 
-  , _curve126startParamV0  :: Double 
-  , _curve126endParamV1    :: Double
-  , _curve126planeNormal   :: Maybe (Double, Double, Double)
+  , _curve126StartParamV0  :: Double 
+  , _curve126EndParamV1    :: Double
+  , _curve126PlaneNormal   :: Maybe (Double, Double, Double)
   } deriving (Show, Eq)
 
 makeFields ''Curve126
@@ -73,9 +73,9 @@ instance Default Curve126 where
     , _curve126Closed        = True
     , _curve126Polynomial    = False
     , _curve126Periodic      = True
-    , _curve126startParamV0  = 0
-    , _curve126endParamV1    = 1
-    , _curve126planeNormal   = Nothing
+    , _curve126StartParamV0  = 0
+    , _curve126EndParamV1    = 1
+    , _curve126PlaneNormal   = Nothing
     }
 
 
@@ -89,7 +89,7 @@ data CompositeCurve102 = CompositeCurve102
     -- Entity 110 - Line (for straight segments)
     -- Entity 100 - Circular Arc (for arc segments)
     -- Entity 104 - Conic Arc(ellipses, parabolas, hyperbolas)
-  }
+  } deriving (Show, Eq)
 
 makeLenses ''CompositeCurve102
 
@@ -106,6 +106,7 @@ instance Default CompositeCurve102 where
 data CurveOrComposite 
   = Composite CompositeCurve102
   | SingleCurve Curve126
+  deriving (Show, Eq)
 
 -- | Preferred method of representation
 -- for the curve on surface.
@@ -114,7 +115,7 @@ data PreferredRep
   | SBt3D
   | CtUV
   | BothEqual
-  deriving Show
+  deriving (Show, Eq)
 
 -- | how was the curve created.
 data CurveCreation 
@@ -122,7 +123,7 @@ data CurveCreation
   | Projection
   | SurfacesIntersection
   | IsoCurve
-  deriving Show
+  deriving (Show, Eq)
 
 data CurveOnSurface142 = CurveOnSurface142
   { _curveCreation :: CurveCreation
@@ -133,7 +134,7 @@ data CurveOnSurface142 = CurveOnSurface142
   , _curve3D      :: CurveOrComposite
   , _curveUV      :: CurveOrComposite
   , _preferredRep :: PreferredRep
-  }
+  } deriving (Show, Eq)
 
 makeLenses ''CurveOnSurface142
 
@@ -159,7 +160,7 @@ data TrimmedSurface144 = TrimmedSurface144
   , _countInnerBoundaryLoops :: Int
   , _outerBoundary           :: CurveOnSurface142
   , _innerBoundaries         :: [CurveOnSurface142]
-  } -- deriving (Show, Eq)
+  } deriving (Show, Eq)
 
 makeLenses ''TrimmedSurface144 
 

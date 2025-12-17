@@ -11,32 +11,60 @@ import Data.Maybe (mapMaybe, listToMaybe)
 import Data.List (foldl')
 import Data.Char (isDigit)
 import Text.Read (readMaybe)
-import Control.Monad (when, join)
-import RIO (logInfo, logError, logWarn, displayShow)
+import Control.Monad (when, join, forM_)
+import RIO 
+  ( logInfo
+  , logError
+  , logWarn
+  , displayShow
+  , asks
+  , atomicModifyIORef'
+  , writeIORef
+  , readIORef
+  )
 
-import Geometry.File.IGES.Type (ckEntityType, IgesRaw(..), DirEntry(..), Section(..))
-import Geometry.File.IGES.BuilderIgesRaw
-import Geometry.File.IGES.Helper (safeIndex, textToInt)
-import Geometry.File.TranslatorAppType (TranslatorApp(..))
+import Geometry.File.IGES.Type 
+  (ckEntityType
+  , SectionedIges(..)
+  , DirEntry(..)
+  , Section(..)
+  , DirEntriesMap(..)
+  )
+import Geometry.File.IGES.BuilderSectionedIges
+import Geometry.File.IGES.Helper 
+  ( safeIndex
+  , textToInt
+  )
+import Geometry.File.TranslatorAppType 
+  ( TranslatorApp(..)
+  , TranslatorEnv(..)
+  , modifyDirEntries
+  )
 
--- | at the moment is only a list of DEs, but if we will start 
--- support for composite entities that refer back to DEs, will
--- need perhaps to make this a @Map SeqNumDE DirEntry@
-buildDEs :: IgesRaw -> TranslatorApp [Maybe DirEntry] 
-buildDEs igs = do 
-  let linesDEsection = IM.toList section 
-  logInfo $ "Found " 
-          <> displayShow (length linesDEsection)
-          <> " lines in the Directory Entry section of the IGES file."
-  sequence $ mapCouples readDirectoryEntry linesDEsection
-  where 
+
+buildDEs :: SectionedIges -> TranslatorApp ()
+buildDEs igs = do
+  let linesDEsection = IM.toList section
+  logInfo $
+    "Found "
+      <> displayShow (length linesDEsection)
+      <> " lines in the Directory Entry section of the IGES file."
+
+  forM_ (mapCouples (,) linesDEsection) $ \(l1, l2) -> do
+    mde <- readDirectoryEntry l1 l2
+    forM_ mde $ \de ->
+      modifyDirEntries (IM.insert (seqNum de) de)
+
+  where
     section = igs M.! Directory
-    
-    mapCouples :: (a -> a -> b) -> [a] -> [b] 
+
+    mapCouples :: (a -> a -> b) -> [a] -> [b]
     mapCouples f [] = []
     mapCouples f [l] = []
     mapCouples f (l1:l2:ls) = f l1 l2 : mapCouples f ls
 
+
+-- | given two lines of Dir Entry, creates the actual type data
 readDirectoryEntry 
   :: (IM.Key, T.Text) 
   -> (IM.Key, T.Text) 
@@ -73,6 +101,7 @@ readDirectoryEntry (rowN1, l1) (rowN2, l2) = do
               logInfo "Directory entity successfully parsed:"
               logInfo $ displayShow de
               return $ Just de
+
 
 chunkText :: Int -> T.Text -> [T.Text]
 chunkText n txt

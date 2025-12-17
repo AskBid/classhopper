@@ -52,6 +52,8 @@ curve126parser = do
   parseKnots pads
   parseWeights pads
   parseCPs pads
+  parseV0V1 
+  parsePlaneNormal
   getState
 
 
@@ -82,3 +84,19 @@ parseCPs :: ColsPaddings -> Parser126 ()
 parseCPs pads = do
   cps   <- parseDoubles $ nPoints pads * 3
   modifyState $ controlPoints .~ cps
+
+parseV0V1 :: Parser126 ()
+parseV0V1 = do
+  v0 <- floatToken
+  v1 <- floatToken
+  modifyState $ (startParamV0 .~ v0) 
+              . (endParamV1 .~ v1)
+
+parsePlaneNormal :: Parser126 ()
+parsePlaneNormal = do
+  currentCurve <- getState
+  when (currentCurve ^. planar) $ do
+    xn <- floatToken
+    yn <- floatToken
+    zn <- floatToken
+    modifyState $ planeNormal ?~ (xn, yn, zn)

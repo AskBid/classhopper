@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase        #-}
 
-module Geometry.File.IGES.BuilderIgesRaw where
+module Geometry.File.IGES.BuilderSectionedIges where
 
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -25,16 +25,16 @@ readIGESfile location = do
   -- TL.toStrict converts each line into strict Text.
   -- You can safely process it with all your T.* functions.
 
-buildIgesRaw :: [FileLine] -> IgesRaw
-buildIgesRaw lines =
-  foldl' insertLine M.empty $ mapMaybe mkIgesRawLine lines 
+buildSectionedIges :: [FileLine] -> SectionedIges
+buildSectionedIges lines =
+  foldl' insertLine M.empty $ mapMaybe mkSectionedIgesLine lines 
 
-insertLine :: IgesRaw -> (Section, SeqNumRawLine) -> IgesRaw
+insertLine :: SectionedIges -> (Section, SeqNumRawLine) -> SectionedIges
 insertLine acc (sect, lineMap) =
   M.insertWith IM.union sect lineMap acc
 
-mkIgesRawLine :: FileLine -> Maybe (Section, SeqNumRawLine)
-mkIgesRawLine ln = do
+mkSectionedIgesLine :: FileLine -> Maybe (Section, SeqNumRawLine)
+mkSectionedIgesLine ln = do
   let (corpText, seqNumText) = T.splitAt 73 ln
   (rawLineChar, sectionChar) <- T.unsnoc corpText
   section <- getSection sectionChar

@@ -4,7 +4,7 @@ version:            0.1.0.0
 build-type:         Simple
 
 library
-  exposed-modules:  Geometry.File.IGES.BuilderIgesRaw
+  exposed-modules:  Geometry.File.IGES.BuilderSectionedIges
                   , Geometry.File.IGES.Type
                   , Geometry.File.IGES.TypeEntity
                   , Geometry.File.IGES.BuilderDirectory

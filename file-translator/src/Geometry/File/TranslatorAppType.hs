@@ -6,14 +6,22 @@ module Geometry.File.TranslatorAppType where
 
 import RIO
 import RIO.Text (Text)
-import Text.Parsec.Token (GenLanguageDef(nestedComments))
+import qualified Data.IntMap.Strict as IM
+
+import Geometry.File.IGES.Type
 
 -- LogFunc is just a function that performs logging.
-newtype TranslatorEnv = TranslatorEnv
-  { teLogFunc :: LogFunc
+data TranslatorEnv = TranslatorEnv
+  { teLogFunc    :: LogFunc
+  , teDirEntries :: IORef DirEntriesMap
+    -- ^ why IORef? bc RIO is a ReaderT not a StateT 
+    -- it is not writable, hence we need to introduce a IORef.
+    -- you could  StateT DirEntriesMap (RIO TranslatorEnv)
+    -- but then need a lot of lift, 
+    -- RIO discourages to have two environments.
   }
-  -- so RIO gives us this type to which our defined log function needs 
-  -- to comply to.
+  -- so RIO gives us this type to which our defined log 
+  -- function needs to comply to.
 
 -- RIO uses a typeclass to retrieve the LogFunc
 instance HasLogFunc TranslatorEnv where
@@ -31,4 +39,26 @@ instance HasLogFunc TranslatorEnv where
 -- | Your application monad is now "RIO TranslatorEnv a"
 -- The monad is RIO, which is just ReaderT env IO with helper functions
 type TranslatorApp a = RIO TranslatorEnv a
--- newtype RIO env a = RIO {unRIO :: ReaderT env IO a}
+-- ^ newtype RIO env a = RIO {unRIO :: ReaderT env IO a}
+--
+-- type TranslatorApp a = RIO TranslatorEnv a 
+-- is basically just:
+-- ReaderT env IO
+
+getDirEntries :: TranslatorApp DirEntriesMap
+getDirEntries = do
+  ref <- asks teDirEntries
+  readIORef ref
+
+putDirEntries :: DirEntriesMap -> TranslatorApp ()
+putDirEntries m = do
+  ref <- asks teDirEntries
+  writeIORef ref m
+
+modifyDirEntries :: (DirEntriesMap -> DirEntriesMap) -> TranslatorApp ()
+modifyDirEntries f = do
+  ref <- asks teDirEntries
+  atomicModifyIORef' ref (\m -> (f m, ()))
+
+removeDirEntry :: IM.Key -> TranslatorApp ()
+removeDirEntry k = modifyDirEntries $ IM.delete k 

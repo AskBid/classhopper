@@ -2,7 +2,7 @@
 
 getIgesEntitities ->
 
-BuilderIgesRaw (gets the Sections of the IGES file) IgesRaw
+BuilderSectionedIges (gets the Sections of the IGES file) SectionedIges
    \/
 BuilderDirectory : buildDEs (finds the Directory Entries) DirEntry
    \/
