@@ -1,64 +1,44 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-} 
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Geometry.File.IGES.RunIgesReader 
   ( getIgesEntities
   ) where 
 
-import Text.Parsec 
-  ( runParser
-  , ParseError
-  )
-import Text.Parsec.Pos 
-  (initialPos)
-import Text.Parsec.Error 
-  ( newErrorMessage
-  , Message(..)
-  , errorMessages
-  , messageString
-  )
 import Data.Default
+import Data.Proxy
 import qualified Data.Text as T
-import Control.Monad.IO.Class 
-  (liftIO)
-import Data.Maybe 
-  (catMaybes)
-import RIO 
-  ( logInfo
-  , logError
-  , displayShow
-  , display
-  , asks
-  ) 
+import Control.Monad.IO.Class (liftIO)
+import Data.Maybe (catMaybes)
 import Data.IORef
 import qualified Data.IntMap.Strict as IM
+import Text.Parsec
+import RIO ( logInfo
+           , logError
+           , displayShow
+           , display
+           , asks
+           ) 
 
 
-import Geometry.File.IGES.BuilderSectionedIges 
-  (readIGESfile, buildSectionedIges)
-import Geometry.File.IGES.BuilderDirectory 
-  (buildDEs)
-import Geometry.File.IGES.BuilderParameter 
-  (formatParameter)
-import Geometry.File.IGES.ParameterParser.Surface128 
-  (surface128parser)
 import Geometry.File.IGES.TypeEntity
 import Geometry.File.IGES.Type
+import Geometry.File.IGES.ComposeEntity
+import Geometry.File.IGES.BuilderSectionedIges 
+          (readIGESfile, buildSectionedIges)
+import Geometry.File.IGES.BuilderDirectory 
+          (buildDEs)
+import Geometry.File.IGES.ParameterParser.Surface128 
+          (surface128parser)
 import Geometry.File.TranslatorAppType 
-  ( TranslatorApp(..)
-  , TranslatorEnv(..)
-  , removeDirEntry 
-  , getDirEntries
-  )
+          ( TranslatorApp(..)
+          , TranslatorEnv(..)
+          , removeDirEntry 
+          , getDirEntries
+          )
 
------------
--- SCHEMA
------------
--- readIGESfile
---   -> buildSectionedIges
---   -> buildDEs
---   -> formatParameter
---   -> surface128parser
 
 -- | only working for Surface128data for now. As it is 
 -- the only one supported as of writing, but it may need 
@@ -82,9 +62,9 @@ getIgesEntities location = do
 
   buildDEs igs
 
-  pe144s <- processDEs TrimmedSurface144_label
+  builtE126s <- processDEs @Curve126 igs
 
-  logInfo $ displayShow pe144s
+  logInfo $ displayShow $ length builtE126s
   
   logInfo "Finished IGES parameter parsing."
 
@@ -98,104 +78,42 @@ getIgesEntities location = do
   return []
 
 
-processDEs :: EntityType_label -> TranslatorApp [ParsedEntity]
-processDEs lab = go []
+-- | consumes the Entity type given trying to compose it into 
+-- the corresponding Entity.
+processDEs 
+  :: forall a. Composable a
+  => SectionedIges 
+  -> TranslatorApp [Either ParseError a]
+processDEs igs = go []
   where
     go acc = do
+      let lab = entityLabel (Proxy @a)
+      -- ^ defined in each type Composable class instance.
+      -- Given the type a, tell me which IGES entity label 
+      -- it corresponds to.
       mde <- popWhere (\de -> entityType de == lab)
       case mde of
-        Nothing ->
-          pure (reverse acc)
-
+        Nothing -> pure (reverse acc)
         Just de -> do
-          let pe = parseEntity de
+          pe <- composeEntity de igs
           go (pe : acc)
 
--- | given a predicate, returns nothing if finds
--- an object from that predicate filtered map, 
--- deleting that element from the map. Nothing otherwise
+
+-- | given a predicate, returns nothing if it finds
+-- an object from Map, 
+-- deletes that element from the map if found.
 popWhere
   :: (DirEntry -> Bool)
   -> TranslatorApp (Maybe DirEntry)
 popWhere p = do
   ref <- asks teDirEntries
-  liftIO $ atomicModifyIORef' ref $ \m ->
-    case IM.minViewWithKey (IM.filter p m) of
-      Nothing ->
-        (m, Nothing)
-      Just ((k, de), _) ->
-
-        (IM.delete k m, Just de)
-
--- popWhere 
---   :: (DirEntry -> Bool) 
---   -> TranslatorApp (Maybe DirEntry)
--- popWhere p = do
---   ref <- asks teDirEntries
---   atomicModifyIORef' ref $ \m ->
---     case findAndRemove p m of
---       Nothing       -> (m, Nothing)
---       Just (de, m') -> (m', Just de)
-
-
--- | given the sectioned IGES and a Directory Entry, 
--- it returns the parse parameter as full Entity.
-fishParameterFromDE 
-  :: SectionedIges 
-  -> DirEntry 
-  -> TranslatorApp (Either ParseError Surface128)
-fishParameterFromDE igs de = do
-
-  let mP = formatParameter (pointerP de) (countPlines de) igs
-
-  case mP of
-
-    Nothing  -> do 
-      let err = "Missing parameter text block." :: T.Text
-      -- importing RIO everything becomes Utf8Builder
-      logError $ display err
-      return $ Left (toParseError $ T.unpack err)
-
-    Just p   -> do 
-      let parseResult = runParser surface128parser def "" p
-      case parseResult of 
-        Left err -> do 
-          mapM_ (logInfo . displayShow . messageString) $ 
-            errorMessages err
-          return $ Left err
-        Right ent -> do 
-          -- logInfo $ displayShow ent
-          return $ Right ent
-
-
-parseEntity :: DirEntry -> ParsedEntity
-parseEntity (DirEntry _ Surface128_label _ _) = 
-  PESurface128 def
-parseEntity (DirEntry _ TrimmedSurface144_label _ _) = 
-  PETrimmedSurface144 def
-
-data ParsedEntity
-  = PESurface128 Surface128
-  | PETrimmedSurface144 TrimmedSurface144
-  deriving Show
--- runEntityParser 
---   :: EntityType_label 
---   -> (Parameter -> Either ParseError a)
--- runEntityParser Surface128_label = 
---   runParser surface128parser def "" 
--- runEntityParser Curve126_label =
---   runParser curve126parser def "" 
--- runEntityParser CompositeCurve102_label =
---   runParser compositeCurve102parser def ""
--- runEntityParser CurveOnSurface142_label = 
---   runParser curveOnSurface142parser def ""
--- runEntityParser TrimmedSurface144_label =
---   runParser trimmedSurface144parser def ""
-
-
-toParseError :: String -> ParseError
-toParseError msg = 
-  newErrorMessage (Message msg) (initialPos "<input>")
+  liftIO $ atomicModifyIORef' ref func
+  where 
+    func m = case IM.minViewWithKey (IM.filter p m) of
+      Nothing           -> (m, Nothing)
+      Just ((k, de), _) -> (IM.delete k m, Just de)
+    -- ^ the map goes to modify IORef and a result is 
+    -- given,
 
 
 onlyRights :: [Either b a] -> [a]

@@ -1,5 +1,9 @@
+{-# LANGUAGE OverloadedStrings #-}
+-- | This module takes the Parameter section data based 
+-- on a Direcotry Entry information and runs the Parameter 
+-- Parsers in Geometry.File.IGES.ParameterParser
 module Geometry.File.IGES.BuilderParameter 
-  ( formatParameter 
+  ( runParameterParser 
   ) where
 
 import qualified Data.Text as T
@@ -10,25 +14,56 @@ import Data.List (foldl')
 import Data.Char (isDigit)
 import Text.Read (readMaybe)
 import Control.Monad (when, join)
+import Data.Default
+import Text.Parsec
+import Text.Parsec.Pos 
+  (initialPos)
+import Text.Parsec.Error 
+  ( newErrorMessage
+  , Message(..)
+  , errorMessages
+  , messageString
+  )
 
 import Geometry.File.IGES.Type 
 import Geometry.File.IGES.BuilderSectionedIges
 import Geometry.File.IGES.Helper
 
--- | the column at which the free formatted parameter data stops.
+-- | the column at which the free formatted parameter 
+-- data stops.
 pColumnEnd :: SeqNumP
 pColumnEnd = 65
 
+runParameterParser 
+  :: Default a
+  => SeqNumP 
+  -> Int 
+  -> SectionedIges 
+  -> Parsec Parameter a a
+  -> Either ParseError a
+runParameterParser start pCount igs parser = do 
+  let mp = formatParameter start pCount igs
+  case mp of 
+    Nothing  -> do 
+      let err = "Missing parameter text block."
+      Left (toParseError $ T.unpack err)
+    Just p   -> do 
+      let parseResult = runParser parser def "" p
+      parseResult
+
 -- | it just processes the parameter section of an entity and 
 -- returns the raw cells as Text. Ready to be parsed.
-formatParameter :: SeqNumP -> Int -> SectionedIges -> Maybe Parameter
+formatParameter 
+  :: SeqNumP -> Int -> SectionedIges -> Maybe Parameter
 formatParameter start pCount igs = do
 
   let paramSect = igs M.! Parameter
       (_, temp) = IM.split (start - 1) paramSect
       (ps, _) = IM.split (start + pCount) temp 
 
-  pAsText <- safeInit $ T.concat $ IM.foldrWithKey processLine [] ps
+  pAsText <- safeInit 
+               $ T.concat 
+               $ IM.foldrWithKey processLine [] ps
   separator <- snd $ takeFirstNumAndSep pAsText
   return $ splitText separator pAsText
 
@@ -46,3 +81,8 @@ takeFirstNumAndSep t =
   let numPart = T.takeWhile isDigit t
       sepPart = T.take 1 $ T.drop (T.length numPart) t
   in (numPart, textToChar sepPart)
+
+toParseError :: String -> ParseError
+toParseError msg = 
+  newErrorMessage (Message msg) (initialPos "<input>")
+
