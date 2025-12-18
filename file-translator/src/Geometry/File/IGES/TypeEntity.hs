@@ -2,12 +2,14 @@
 {-# LANGUAGE FlexibleInstances      #-} 
 {-# LANGUAGE FunctionalDependencies #-}
 
--- | All the types related to the IGES file entities.
+-- | All the types related to the IGES 
+-- file entities.
 module Geometry.File.IGES.TypeEntity where 
 
 import Control.Lens
 import Data.Default
 
+import Geometry.File.IGES.Type
 
 --------------------------
   --  128
@@ -101,6 +103,24 @@ instance Default CompositeCurve102 where
     }
 
 
+-- | When an entity is composed of multiple entities,
+-- the parameter parser first requires a `Parameter` 
+-- entity that connects, via pointers, to all entities 
+-- composing the composite entity.
+data PointersEntity102 = PointersEntity102
+  { _nCurvesPointer :: Int
+  , _curvesPointers :: [SeqNumDE]
+  } deriving (Show, Eq)
+
+makeLenses ''PointersEntity102
+
+instance Default PointersEntity102 where
+  def = PointersEntity102
+    { _nCurvesPointer = 0 
+    , _curvesPointers = []
+    }
+
+
 --------------------------
   --  142
 --------------------------
@@ -173,3 +193,17 @@ instance Default TrimmedSurface144 where
     , _outerBoundary           = def 
     , _innerBoundaries         = [] 
     }
+
+
+-- | to transfer the scene to the Scene in 
+-- bezier-rnder module.
+data IgesScene = IgesScene
+  { srfs        :: [Surface128]
+  , crvs        :: [Curve126]
+  , trimmedSrfs :: [TrimmedSurface144]
+  -- TODO:
+  -- , unit      :: Float
+  -- , maxSize   :: Int 
+  -- , tolerance :: Float
+  -- , errors :: 
+  } deriving Show

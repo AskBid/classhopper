@@ -4,6 +4,13 @@ import qualified Data.Text as T
 import Data.Char (isDigit)
 import Data.Maybe (listToMaybe)
 import Data.Text.Read (decimal)
+import Text.Parsec
+import Text.Parsec.Pos 
+  (initialPos)
+import Text.Parsec.Error 
+  ( newErrorMessage
+  , Message(..)
+  )
 
 textToInt :: T.Text -> Maybe Int
 textToInt txt = 
@@ -28,3 +35,9 @@ safeInit :: T.Text -> Maybe T.Text
 safeInit t
   | T.null t  = Nothing
   | otherwise = Just $ T.init t
+
+toParseError :: String -> ParseError
+toParseError msg = 
+  newErrorMessage 
+    (Message msg) 
+    (initialPos "<input>")

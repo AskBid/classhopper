@@ -31,15 +31,6 @@ import Scene.Scene
 import Scene.GeometryAction 
 import Scene.Class (addToScene)
 
--- | to transfer the scene to the Scene in bezier-rnder module.
-newtype SceneFromIGES = SceneFromIGES
-  { surfaces  :: [Surface128]
-  -- , curves    :: [Curve]
-  -- , unit      :: Float
-  -- , maxSize   :: Int 
-  -- , tolerance :: Float
-  -- , errors :: 
-  } deriving Show
 
 openIGES :: FilePath -> IO SceneFromIGES
 openIGES file = do 

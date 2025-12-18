@@ -2,14 +2,15 @@
 
 module Geometry.File.TranslatorApp where 
 
+import qualified Data.IntMap.Strict as IM
+import RIO
+
 import Geometry.File.TranslatorAppType
 import Geometry.File.IGES.RunIgesReader (getIgesEntities)
-import Geometry.File.IGES.TypeEntity (Surface128)
-import RIO
-import qualified Data.IntMap.Strict as IM
+import Geometry.File.IGES.TypeEntity (IgesScene)
 
 
-openFile :: FilePath -> IO [Surface128]
+openFile :: FilePath -> IO IgesScene
 openFile filepath = do 
   logOptions <- logOptionsHandle stdout True
   let logOptionsNoTime = setLogUseTime False logOptions

@@ -25,7 +25,7 @@ import RIO
 
 import Geometry.File.IGES.Type 
   (ckEntityType
-  , SectionedIges(..)
+  , SectionedIgesLines(..)
   , DirEntry(..)
   , Section(..)
   , DirEntriesMap(..)
@@ -42,7 +42,7 @@ import Geometry.File.TranslatorAppType
   )
 
 
-buildDEs :: SectionedIges -> TranslatorApp ()
+buildDEs :: SectionedIgesLines -> TranslatorApp ()
 buildDEs igs = do
   let linesDEsection = IM.toList section
   logInfo $

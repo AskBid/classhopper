@@ -15,7 +15,19 @@ import Geometry.File.IGES.Helper (textToInt)
 -- a is the type returned.
 -- this is a Parameter parser that need its UserState
 -- customised to the particualr parameter type processed.
+-- Using Parameter for s means that the Parser Token is not
+-- a char but a cell from the parameter section (Text).
 type ParserP s a = Parsec Parameter s a
+
+-- | Positive integer numbers only.
+num :: ParserP s Int 
+num = do 
+  tok <- anyToken
+  case textToInt tok of
+    Just n -> if n >= 0 
+              then return n 
+              else fail "The number was negative."
+    Nothing -> fail "Could not read number."
 
 -- | checks the first cell of the Parameter and makes
 -- sure it is about a supported entity.

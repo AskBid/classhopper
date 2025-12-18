@@ -25,15 +25,21 @@ readIGESfile location = do
   -- TL.toStrict converts each line into strict Text.
   -- You can safely process it with all your T.* functions.
 
-buildSectionedIges :: [FileLine] -> SectionedIges
+buildSectionedIges :: [FileLine] -> SectionedIgesLines
 buildSectionedIges lines =
-  foldl' insertLine M.empty $ mapMaybe mkSectionedIgesLine lines 
+  foldl' insertLine M.empty 
+    $ mapMaybe mkSectionedIgesLine lines 
 
-insertLine :: SectionedIges -> (Section, SeqNumRawLine) -> SectionedIges
+insertLine 
+  :: SectionedIgesLines 
+  -> (Section, SeqNumRawLine) 
+  -> SectionedIgesLines
 insertLine acc (sect, lineMap) =
   M.insertWith IM.union sect lineMap acc
 
-mkSectionedIgesLine :: FileLine -> Maybe (Section, SeqNumRawLine)
+mkSectionedIgesLine 
+  :: FileLine 
+  -> Maybe (Section, SeqNumRawLine)
 mkSectionedIgesLine ln = do
   let (corpText, seqNumText) = T.splitAt 73 ln
   (rawLineChar, sectionChar) <- T.unsnoc corpText

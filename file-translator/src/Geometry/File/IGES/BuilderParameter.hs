@@ -3,7 +3,7 @@
 -- on a Direcotry Entry information and runs the Parameter 
 -- Parsers in Geometry.File.IGES.ParameterParser
 module Geometry.File.IGES.BuilderParameter 
-  ( runParameterParser 
+  ( runParameterParser
   ) where
 
 import qualified Data.Text as T
@@ -38,7 +38,7 @@ runParameterParser
   :: Default a
   => SeqNumP 
   -> Int 
-  -> SectionedIges 
+  -> SectionedIgesLines 
   -> Parsec Parameter a a
   -> Either ParseError a
 runParameterParser start pCount igs parser = do 
@@ -54,7 +54,7 @@ runParameterParser start pCount igs parser = do
 -- | it just processes the parameter section of an entity and 
 -- returns the raw cells as Text. Ready to be parsed.
 formatParameter 
-  :: SeqNumP -> Int -> SectionedIges -> Maybe Parameter
+  :: SeqNumP -> Int -> SectionedIgesLines -> Maybe Parameter
 formatParameter start pCount igs = do
 
   let paramSect = igs M.! Parameter
@@ -81,8 +81,3 @@ takeFirstNumAndSep t =
   let numPart = T.takeWhile isDigit t
       sepPart = T.take 1 $ T.drop (T.length numPart) t
   in (numPart, textToChar sepPart)
-
-toParseError :: String -> ParseError
-toParseError msg = 
-  newErrorMessage (Message msg) (initialPos "<input>")
-

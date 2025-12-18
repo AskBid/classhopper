@@ -47,7 +47,7 @@ import Geometry.File.TranslatorAppType
 -- the @Either@ is for parsing errors.
 getIgesEntities 
   :: FilePath 
-  -> TranslatorApp [a]
+  -> TranslatorApp IgesScene
 getIgesEntities location = do 
 
   logInfo $ "Reading IGES file: " 
@@ -75,14 +75,14 @@ getIgesEntities location = do
   logInfo $ "Successful parsings: " 
           <> displayShow (length [])
 
-  return []
+  pure $ IgesScene [] [] []
 
 
--- | consumes the Entity type given trying to compose it into 
--- the corresponding Entity.
+-- | consumes the Entity type given trying to compose 
+-- it into the corresponding Entity.
 processDEs 
   :: forall a. Composable a
-  => SectionedIges 
+  => SectionedIgesLines 
   -> TranslatorApp [Either ParseError a]
 processDEs igs = go []
   where

@@ -22,7 +22,7 @@ data Section
 
 type SeqNumRawLine = IM.IntMap T.Text
 
-type SectionedIges = M.Map Section SeqNumRawLine
+type SectionedIgesLines = M.Map Section SeqNumRawLine
 
 -- | Sequence number is non other than the 
 -- line number for the section considered.
@@ -51,10 +51,10 @@ data EntityType_label
 -- integers for directory entity.
 ckEntityType :: Int -> Maybe EntityType_label
 ckEntityType 128 = Just Surface128_label
-ckEntityType 144 = Just TrimmedSurface144_label
-ckEntityType 142 = Just CurveOnSurface142_label
-ckEntityType 102 = Just CompositeCurve102_label
 ckEntityType 126 = Just Curve126_label
+ckEntityType 102 = Just CompositeCurve102_label
+ckEntityType 142 = Just CurveOnSurface142_label
+ckEntityType 144 = Just TrimmedSurface144_label
 --
 -- ckEntityType 141 = Boundary141
 -- mkEntityType 110 = Line_110
