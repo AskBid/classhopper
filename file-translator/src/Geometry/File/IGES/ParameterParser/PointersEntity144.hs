@@ -1,4 +1,4 @@
-module Geometry.File.IGES.ParameterParser.TrimmedSurface144  
+module Geometry.File.IGES.ParameterParser.PointersEntity144  
   ( trimmedSurface144parser 
   ) where 
 

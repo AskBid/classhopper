@@ -1,4 +1,4 @@
-module Geometry.File.IGES.ParameterParser.CurveOnSurface142
+module Geometry.File.IGES.ParameterParser.PointersEntity142
   ( curveOnSurface142parser 
   ) where 
 

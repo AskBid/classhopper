@@ -1,4 +1,4 @@
-module Geometry.File.IGES.ParameterParser.CompositeCurve102
+module Geometry.File.IGES.ParameterParser.PointersEntity102
   ( pointersEntity102parser
   ) where 
 

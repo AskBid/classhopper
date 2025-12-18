@@ -22,7 +22,7 @@ import Geometry.File.IGES.TypeEntity
 import Geometry.File.IGES.BuilderParameter 
 import Geometry.File.IGES.ParameterParser.Surface128 
 import Geometry.File.IGES.ParameterParser.Curve126 
-import Geometry.File.IGES.ParameterParser.CompositeCurve102 
+import Geometry.File.IGES.ParameterParser.PointersEntity102 
 import Geometry.File.TranslatorAppType 
   ( TranslatorApp(..)
   , TranslatorEnv(..)

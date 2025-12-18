@@ -169,6 +169,30 @@ instance Default CurveOnSurface142 where
     }
 
 
+-- | When an entity is composed of multiple entities,
+-- the parameter parser first requires a `Parameter` 
+-- entity that connects, via pointers, to all entities 
+-- composing the composite entity.
+data PointersEntity142 = PointersEntity142 
+  { _curveCreationPointer :: CurveCreation
+  , _surfacePointer       :: SeqNumDE
+  , _curve3DPointer       :: SeqNumDE
+  , _curveUVPointer       :: SeqNumDE
+  , _preferredRepPointer  :: PreferredRep
+  }
+
+makeLenses ''PointersEntity142
+
+instance Default PointersEntity142 where
+  def = PointersEntity142
+    { _curveCreationPointer = CreationUnspecified 
+    , _surfacePointer       = 0
+    , _curve3DPointer       = 0
+    , _curveUVPointer       = 0
+    , _preferredRepPointer  = RepUnspecified 
+    }
+
+
 --------------------------
   --  144
 --------------------------
