@@ -132,6 +132,15 @@ instance Composable CurveOnSurface142 where
 
 
 
+instance Composable TrimmedSurface144 where 
+
+  entityLabel _ = TrimmedSurface144_label
+
+  composeEntity de igs = do 
+    -- TODO
+    pure $ Right def
+
+
 
 -------------
 -- HELPERS 

@@ -174,22 +174,22 @@ instance Default CurveOnSurface142 where
 -- entity that connects, via pointers, to all entities 
 -- composing the composite entity.
 data PointersEntity142 = PointersEntity142 
-  { _curveCreationPointer :: CurveCreation
-  , _surfacePointer       :: SeqNumDE
-  , _curve3DPointer       :: SeqNumDE
-  , _curveUVPointer       :: SeqNumDE
-  , _preferredRepPointer  :: PreferredRep
+  { _curveCreationPtr :: CurveCreation
+  , _surfacePtr       :: SeqNumDE
+  , _curve3DPtr       :: SeqNumDE
+  , _curveUVPtr       :: SeqNumDE
+  , _preferredRepPtr  :: PreferredRep
   }
 
 makeLenses ''PointersEntity142
 
 instance Default PointersEntity142 where
   def = PointersEntity142
-    { _curveCreationPointer = CreationUnspecified 
-    , _surfacePointer       = 0
-    , _curve3DPointer       = 0
-    , _curveUVPointer       = 0
-    , _preferredRepPointer  = RepUnspecified 
+    { _curveCreationPtr = CreationUnspecified 
+    , _surfacePtr       = 0
+    , _curve3DPtr       = 0
+    , _curveUVPtr       = 0
+    , _preferredRepPtr  = RepUnspecified 
     }
 
 
@@ -197,25 +197,48 @@ instance Default PointersEntity142 where
   --  144
 --------------------------
 data TrimmedSurface144 = TrimmedSurface144
-  { _trimmedEntity           :: Surface128
-  , _boundaryIsBoundary      :: Bool
+  { _trimmedEntity        :: Surface128
+  , _boundaryIsBoundary   :: Bool
     -- ^ this is a legacy thing.. it is always True
     -- is only if sometimes the surface is untrimmed 
     -- but they stil give boudnaries for contruction
-  , _countInnerBoundaryLoops :: Int
-  , _outerBoundary           :: CurveOnSurface142
-  , _innerBoundaries         :: [CurveOnSurface142]
+  , _countInnerBoundaries :: Int
+  , _outerBoundary        :: CurveOnSurface142
+  , _innerBoundaries      :: [CurveOnSurface142]
   } deriving (Show, Eq)
 
 makeLenses ''TrimmedSurface144 
 
 instance Default TrimmedSurface144 where
   def = TrimmedSurface144 
-    { _trimmedEntity           = def 
-    , _boundaryIsBoundary      = def
-    , _countInnerBoundaryLoops = 0
-    , _outerBoundary           = def 
-    , _innerBoundaries         = [] 
+    { _trimmedEntity        = def 
+    , _boundaryIsBoundary   = def
+    , _countInnerBoundaries = 0
+    , _outerBoundary        = def 
+    , _innerBoundaries      = [] 
+    }
+
+-- | When an entity is composed of multiple entities,
+-- the parameter parser first requires a `Parameter` 
+-- entity that connects, via pointers, to all entities 
+-- composing the composite entity.
+data PointersEntity144 = PointersEntity144
+  { _trimmedEntityPtr        :: SeqNumDE
+  , _boundaryIsBoundaryPtr   :: Bool
+  , _countInnerBoundariesPtr :: Int 
+  , _outerBoundaryPtr        :: SeqNumDE
+  , _innerBoundariesPtr      :: [SeqNumDE]
+  }
+
+makeLenses ''PointersEntity144 
+
+instance Default PointersEntity144 where
+  def = PointersEntity144
+    { _trimmedEntityPtr        = 0 
+    , _boundaryIsBoundaryPtr   = True
+    , _countInnerBoundariesPtr = 0
+    , _outerBoundaryPtr        = 0
+    , _innerBoundariesPtr      = []
     }
 
 

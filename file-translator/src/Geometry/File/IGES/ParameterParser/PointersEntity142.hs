@@ -33,11 +33,11 @@ pointersEntity142parser = do
   pr    <- parsePreferredRep
   
   modifyState 
-    $ (curveCreationPointer .~ cc)
-    . (surfacePointer       .~ srf)
-    . (curve3DPointer       .~ crv3d)
-    . (curveUVPointer       .~ crvUV)
-    . (preferredRepPointer  .~ pr)
+    $ (curveCreationPtr .~ cc)
+    . (surfacePtr       .~ srf)
+    . (curve3DPtr       .~ crv3d)
+    . (curveUVPtr       .~ crvUV)
+    . (preferredRepPtr  .~ pr)
 
   getState  
 
