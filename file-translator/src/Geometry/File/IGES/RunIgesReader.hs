@@ -25,7 +25,8 @@ import RIO ( logInfo
 
 import Geometry.File.IGES.TypeEntity
 import Geometry.File.IGES.Type
-import Geometry.File.IGES.ComposeEntity
+import Geometry.File.IGES.Composable.Common
+import Geometry.File.IGES.Composable.Primitive
 import Geometry.File.IGES.BuilderSectionedIges 
           (readIGESfile, buildSectionedIges)
 import Geometry.File.IGES.BuilderDirectory 
@@ -61,7 +62,11 @@ getIgesEntities location = do
   logInfo "Built raw IGES map"
 
   buildDEs igs
-
+  
+  -- Here is important the order of processing DEs 
+  -- most structured entity first. 
+  -- If child entity are consumed first they will be 
+  -- deleted and missing when parents look for them.
   builtE126s <- processDEs @Curve126 igs
 
   logInfo $ displayShow $ length builtE126s

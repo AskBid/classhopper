@@ -7,7 +7,12 @@ library
   exposed-modules:  Geometry.File.IGES.BuilderSectionedIges
                   , Geometry.File.IGES.Type
                   , Geometry.File.IGES.TypeEntity
-                  , Geometry.File.IGES.ComposeEntity
+                  , Geometry.File.IGES.Composable.Common
+                  , Geometry.File.IGES.Composable.Primitive
+                  , Geometry.File.IGES.Composable.ComposeCurveOrComposite
+                  , Geometry.File.IGES.Composable.CompositeCurve102
+                  , Geometry.File.IGES.Composable.CurveOnSurface142
+                  , Geometry.File.IGES.Composable.TrimmedSurface144
                   , Geometry.File.IGES.BuilderDirectory
                   , Geometry.File.IGES.BuilderParameter
                   , Geometry.File.IGES.ParameterParser.Common
