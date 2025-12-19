@@ -82,8 +82,8 @@ parseKnots :: ColsPaddings -> Parser128 ()
 parseKnots pads = do
   u <- parseDoubles (nKnotsU pads)
   v <- parseDoubles (nKnotsV pads)
-  modifyState $
-    (knotsU .~ u)
+  modifyState 
+    $ (knotsU .~ u)
     . (knotsV .~ v)
 
 parseWeights :: ColsPaddings -> Parser128 ()

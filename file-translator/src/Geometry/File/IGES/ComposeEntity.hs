@@ -50,8 +50,10 @@ class Composable a where
     -> TranslatorApp (Either ParseError a)
 
 
+
 instance Composable Surface128 where 
   entityLabel _ = Surface128_label 
+
   composeEntity de igs = do 
     let result = runParameterParser 
                    (pointerP de) 
@@ -64,8 +66,10 @@ instance Composable Surface128 where
       Right ent -> pure $ Right ent
 
 
+
 instance Composable Curve126 where 
   entityLabel _ = Curve126_label
+
   composeEntity de igs = do 
     let result = runParameterParser 
                    (pointerP de) 
@@ -78,8 +82,10 @@ instance Composable Curve126 where
       Right ent -> pure $ Right ent
 
 
+
 instance Composable CompositeCurve102 where 
   entityLabel _ = CompositeCurve102_label
+
   composeEntity de igs = do 
     let pointersEntity = runParameterParser 
                            (pointerP de) 
@@ -113,6 +119,18 @@ instance Composable CompositeCurve102 where
     where 
       err = "Curve126 parsing during a CompositeCurve102"
           ++ "composition has failed"
+
+
+
+instance Composable CurveOnSurface142 where 
+
+  entityLabel _ = CurveOnSurface142_label
+
+  composeEntity de igs = do 
+    -- TODO
+    pure $ Right def
+
+
 
 
 -------------
