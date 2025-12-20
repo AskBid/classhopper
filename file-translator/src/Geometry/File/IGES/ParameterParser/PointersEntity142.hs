@@ -28,8 +28,8 @@ pointersEntity142parser = do
 
   cc    <- parseCurveCreation
   srf   <- num
-  crv3d <- num
   crvUV <- num
+  crv3d <- num
   pr    <- parsePreferredRep
   
   modifyState 
