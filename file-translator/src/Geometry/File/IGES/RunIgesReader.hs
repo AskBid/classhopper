@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-} 
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -27,6 +26,7 @@ import Geometry.File.IGES.TypeEntity
 import Geometry.File.IGES.Type
 import Geometry.File.IGES.Composable.Common
 import Geometry.File.IGES.Composable.Primitive
+import Geometry.File.IGES.Composable.TrimmedSurface144
 import Geometry.File.IGES.BuilderSectionedIges 
           (readIGESfile, buildSectionedIges)
 import Geometry.File.IGES.BuilderDirectory 
@@ -67,20 +67,18 @@ getIgesEntities location = do
   -- most structured entity first. 
   -- If child entity are consumed first they will be 
   -- deleted and missing when parents look for them.
-  builtE126s <- processDEs @Curve126 igs
+  eComposed144s <- processDEs @TrimmedSurface144 igs
+  eComposed128s <- processDEs @Surface128 igs
+  -- TODO missing COS on non trimmed surfaces. (142)
+  eComposed126s <- processDEs @Curve126 igs
 
-  logInfo $ displayShow $ length builtE126s
+  logInfo "Finished Composing Entities from Directory Entries + Parameters."
   
-  logInfo "Finished IGES parameter parsing."
-
-  -- let params = onlyRights eParams
-  logInfo $ "Attempted " 
-          <> displayShow (length []) 
-          <> " parameters parsing"
-  logInfo $ "Successful parsings: " 
-          <> displayShow (length [])
-
-  pure $ IgesScene [] [] []
+  trimSrfs <- logAndFilter eComposed144s
+  srfs     <- logAndFilter eComposed128s
+  crvs     <- logAndFilter eComposed126s
+  
+  pure $ IgesScene srfs crvs trimSrfs
 
 
 -- | consumes the Entity type given trying to compose 
@@ -119,6 +117,17 @@ popWhere p = do
       Just ((k, de), _) -> (IM.delete k m, Just de)
     -- ^ the map goes to modify IORef and a result is 
     -- given,
+
+logAndFilter :: [Either ParseError a] -> TranslatorApp [a] 
+logAndFilter es = do 
+  -- logInfo $ displayShow $ length builtE126s
+  -- let params = onlyRights eParams
+  -- logInfo $ "Attempted " 
+  --         <> displayShow (length []) 
+  --         <> " parameters parsing"
+  -- logInfo $ "Successful parsings: " 
+  --         <> displayShow (length [])
+  pure $ onlyRights es 
 
 
 onlyRights :: [Either b a] -> [a]
