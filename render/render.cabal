@@ -7,7 +7,9 @@ library
   exposed-modules:  Interface
                   , Type
                   , LogHelper
-                  , OpenFile
+                  , File.Translate.Class
+                  , File.Translate.Iges.Scene
+                  , File.Translate.Iges.Surface128
                   , Scene.Scene
                   , Scene.Common
                   , Scene.GeometryAction

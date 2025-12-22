@@ -2,3 +2,7 @@ packages:
   geometry-kernel/
   render/
   file-translator/
+
+documentation: True
+haddock-hoogle: True
+haddock-hyperlink-source: True
