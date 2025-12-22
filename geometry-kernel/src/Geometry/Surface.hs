@@ -38,6 +38,7 @@ data Surface = Surface
   , uRep        :: ParamRep
   , vRep        :: ParamRep
   , cvs         :: CVS
+  , outer       :: [COS]
   , cos         :: [COS]
   , bbox        :: BBox
   }
@@ -98,6 +99,7 @@ mkBSpline pU ktsU pV ktsV coords =
             <*> Just ktsUrep
             <*> Just ktsVrep
             <*> uRowsOfPts
+            <*> Just []
             <*> cos
             <*> Just bbox
 

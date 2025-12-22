@@ -10,6 +10,7 @@ library
                   , File.Translate.Class
                   , File.Translate.Iges.Scene
                   , File.Translate.Iges.Surface128
+                  , File.Translate.Iges.TrimmedSurface144
                   , Scene.Scene
                   , Scene.Common
                   , Scene.GeometryAction

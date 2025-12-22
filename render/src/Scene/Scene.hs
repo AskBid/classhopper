@@ -52,8 +52,16 @@ data Scene = Scene
   , _idCounterRef :: IORef Int
   , _sceneBox     :: P.BBox
   , _cachedBoxes  :: [CachedCurve]
-  }
+  } 
 makeLenses ''Scene
+
+instance Show Scene where 
+  show scene = do 
+    let m = scene ^. geometrySRFS
+        n = length $ toList m
+    "Classhopper Scene:\n" 
+      <> " Surface geometries: " 
+      <> show n
 
 zeroScene :: IO Scene
 zeroScene = do

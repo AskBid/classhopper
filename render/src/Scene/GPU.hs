@@ -1,7 +1,6 @@
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE DuplicateRecordFields  #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE FlexibleInstances      #-}
 
 -- | Probably the base types and operation of Scene 

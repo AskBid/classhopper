@@ -1,6 +1,7 @@
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE FlexibleInstances      #-} 
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 -- | All the types related to the IGES 
 -- file entities.
@@ -245,12 +246,25 @@ instance Default PointersEntity144 where
 -- | to transfer the scene to the Scene in 
 -- bezier-rnder module.
 data IgesScene = IgesScene
-  { srfs        :: [Surface128]
-  , crvs        :: [Curve126]
-  , trimmedSrfs :: [TrimmedSurface144]
+  { srfs128        :: [Surface128]
+  , crvs126        :: [Curve126]
+  , trimmedSrfs144 :: [TrimmedSurface144]
   -- TODO:
   -- , unit      :: Float
   -- , maxSize   :: Int 
   -- , tolerance :: Float
   -- , errors :: 
-  } deriving Show
+  }
+
+instance Show IgesScene where 
+  show IgesScene{..} = do 
+    "\nIgesScene\n"
+      <> "Surfaces 128 count: "
+      <> show (length srfs128)
+      <> "\n" 
+      <> "Curves 126 count: "
+      <> show (length crvs126) 
+      <> "\n"
+      <> "Surfaces 144 count: "
+      <> show (length trimmedSrfs144)
+      <> "\n"

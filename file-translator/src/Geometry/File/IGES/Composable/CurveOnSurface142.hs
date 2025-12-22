@@ -39,6 +39,11 @@ instance Composable CurveOnSurface142 where
         -- we will skip to record on the COS's sruface for 
         -- now as it is in theory always a composition coming 
         -- from a 144 surface.
+        -- I think it is fine to just enable this.. because 144 
+        -- will take and delete the 128 before 142. So if that's 
+        -- the case here will just turn into a Left err... if 144 
+        -- did not take the 128 and this 142 is jsut a COS not a 
+        -- boundary, the 128 will be found and we'll get a Right.
         -- eSrf <- composeFromPointer @Surface128 igs srfPtr
         
         -- Compose the 3D curve 

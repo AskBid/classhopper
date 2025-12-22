@@ -27,7 +27,7 @@ import Scene.Common
 import Scene.WorldRefs (mkWorldRefs)
 import Scene.GLBox -- only to dev for now.
 
-import OpenFile (openIGES, fromIgesSceneToScene)
+import File.Translate.Iges.Scene (fromIgesSceneToScene)
 
 import Shader.Curve (loadCurveShader, loadDashedCurveShader)
 import Shader.CV (loadCVShader)
@@ -43,6 +43,8 @@ import Render.WorldRefs (renderWorldRefs)
 import Geometry.Point
 import Geometry.Surface
 import Geometry.Type
+
+import qualified Geometry.File.TranslatorApp as IGES
 
 newtype RotationView = RotationView (Deg360, Deg360, Deg360)
 -- Type wrapper for clarity
@@ -91,8 +93,10 @@ launchWindow = do
           setScrollCallback win (Just $ scrollHandler zoomRef)
           -- Handles mouse wheel / trackpad scroll events.
 
-          igesScene <- openIGES fileLocation
+          igesScene <- IGES.openFile fileLocation
+          print igesScene
           scene <- fromIgesSceneToScene igesScene
+
           let geomSrfs = elems $ scene ^. SC.geometrySRFS 
           -- (axes, grid) <- mkWorldRefs 1 100 -- (bboxDiagonal sceneBBox)
               scene' = scene & SC.sceneBox .~ SC.findSceneBBox geomSrfs 
@@ -108,8 +112,13 @@ launchWindow = do
                 , SC.GeometrySurface  
                        ( ObjectId 0 ) 
                        ( Surface 
-                           [] [] Bezier Bezier 
-                           (Irrational [[]]) [] 
+                           [] 
+                           [] 
+                           Bezier 
+                           Bezier 
+                           (Irrational [[]]) 
+                           [] 
+                           []
                            (BBox (V3 0 0 0) (V3 0 0 0))
                        ) 
                 )
@@ -155,7 +164,8 @@ launchWindow = do
                 , _asScene         = scene'''
                 }
 
-              sceneDiagonal = double2Float $ boxDiagonal $ scene''' ^. SC.sceneBox
+              sceneDiagonal = double2Float 
+                $ boxDiagonal $ scene''' ^. SC.sceneBox
 
               renderCtx = RenderContext
                 { _rcCurveShader       = curveShaderProgram

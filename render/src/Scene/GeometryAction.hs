@@ -36,6 +36,7 @@ instance GeometryHandle GeometrySurface where
           & gpu     .~ GPUData vbo vao count
     pure $ scene & cachedCVS %~ insert gsId cvs
 
+
 instance Stageable S.Surface where 
   addToScene srf scene = do
     objId <- nextId (scene ^. idCounterRef)
@@ -53,6 +54,7 @@ instance Stageable C.Curve where
     tc <- tessellate gc
     pure $ scene' & cachedCRVS %~ insert objId tc
 
+
 instance Tessellatable GeometryCurve GPU.CachedCurve where
   tessellate GeometryCurve{..} = do
     let pts = C.sampleCrv gcDef samplingAmount
@@ -66,7 +68,7 @@ instance Tessellatable GeometryCurve GPU.CachedCurve where
              & bbox    .~ box
 
 -- | TODO it probably does not need to be 4 different VBOVAo 
--- all borders can be in one.. but could be useful when it comes 
+-- all borders can be in one.. but could be useful when it comes
 -- to selections.
 instance Tessellatable GeometrySurface GPU.CachedSurface where
   tessellate GeometrySurface{..} = do
@@ -91,15 +93,3 @@ instance Tessellatable GeometrySurface GPU.CachedSurface where
                  & sceneId .~ gsId
                  & gpu     .~ GPUData vbo vao count
                  & bbox    .~ box
-
--- verticesBBox :: BBox -> [Float]
--- verticesBBox (BBox (Point3d xmin ymin zmin) (Point3d xmax ymax zmax)) =
---   pts2flattenXYZvertices points
---   where points = [ Point3d x y z 
---               | x <- [xmin, xmax]
---               , y <- [ymin, ymax]
---               , z <- [zmin, zmax]
---               ]
---
--- vbovaoBBox :: BBox -> IO (GL.BufferObject, GL.VertexArrayObject)
--- vbovaoBBox box = cacheVBOVAO $ verticesBBox BBox

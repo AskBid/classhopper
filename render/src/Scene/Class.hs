@@ -8,6 +8,7 @@ import Scene.Scene
 -- perhaps Tesselate is not most appropriate 
 -- naming for all elements this class it used 
 -- with. But makes sense to me.
+-- TODO cached should have a type class Renderable 
 class Tessellatable a cached where
   tessellate :: a -> IO cached
 
