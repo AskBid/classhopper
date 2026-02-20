@@ -1,5 +1,5 @@
 > [!NOTE]
-> This repository is currently mmaintened private. The project has since evolved to 30,000 lines.
+> This repository is currently maintened privately. The project has since evolved to 30,000 lines.
 > You can follow ongoing updates in video format onn [ClassHopper's YouTube Channel](https://www.youtube.com/@ClassHopper3d).
 
 # ClassHopper
